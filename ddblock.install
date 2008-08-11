@@ -1,0 +1,59 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Installation file to implement the dynamic display block schema
+ */
+
+/**
+ * Implementation of hook_schema().
+ */
+function ddblock_schema() {
+  $schema['ddblock_block'] = array(
+    'description' => t('The base tables for ddblocks.'),
+    'fields' => array(
+      'delta' => array(
+        'description' => t('Number of the block.'),
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => t('Title of the block.'),
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('delta'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function ddblock_install() {
+  if (drupal_install_schema('ddblock')) {
+    drupal_set_message(t('Dynamic display block module installed successfully. Module settings are available under !link',
+    array( '!link' => l('Administer > Site configuration > ddblock ',  'admin/settings/ddblock/settings' ))));
+  }
+  else {
+    drupal_set_message(t('The installation of the dynamic display block module was unsuccessful.'), 'error');
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function ddblock_uninstall() {
+  //Drop tables
+  drupal_uninstall_schema('ddblock');
+  // Remove variables
+  db_query("DELETE FROM {variable} WHERE name LIKE 'ddblock_%%'");
+  cache_clear_all('variables', 'cache');
+  drupal_set_message(t("Dynamic display block module uninstalled successfully."));
+}
