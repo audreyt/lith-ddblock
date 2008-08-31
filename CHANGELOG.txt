@@ -1,0 +1,31 @@
+release notes
+
+2008-aug-31
+add functionality for block instances so all blocks can be used with 
+    the dynamic display block module
+change headerimage specific template file to a block content template file.
+add settings for block instances.
+add maximum image to show for image folder.
+add input type to choose which input method to use.
+add clear-block in template files.
+add fieldsets to make settings more grouped.
+
+rename some function to better names.
+optimize get_blocks code.
+remove headerimage specific code.
+strip css file to minimum.
+clean up AHAH callbacks.
+new cycle plugin version: 2.26
+
+issues
+
+#295606 regular expression fix
+#299500 CSS changed 
+
+
+
+
+
+
+
+  
