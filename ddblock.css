@@ -1,59 +1,19 @@
 /* deafult dynamic display block */ 
-.block-ddblock{ 
-  margin: 0; 
-  padding: 0; 
-  width: 195px; 
-  overflow: hidden;
-}
-.block-ddblock .content {
-  margin: 0;
-  padding: 0;
-}
-.ddblock-contents {
-  margin: 0; 
-  padding: 0; 
-  position: relative;
-  top:  0;
-  left: 0;
-  display: block;
-}
-.ddblock-content {
-  margin: 0; 
-  padding: 0; 
-  display:block;
-}
-.ddblock-content .content {
-  margin: 0;
-  padding:0;
-  position: relative;
-  top: 0;
-  left: 0;
-  display: block;
-}
 .ddblock-content blockquote {
   padding: 0;
   margin: 0;
   display: block;
-}  
-.ddblock-content p {
-  padding: 0;
-  margin: 0;
-  display: block;
-}  
-.ddblock-content .node h2 {
-  visibility: hidden;
-}
-.ddblock-content img {
+} 
+ 
+/*.ddblock-content img {
   margin: 0;
   padding: 5px; 
   border: 1px solid #ccc; 
   background-color: #eee; 
-/*	width: 183px;
-	height: 183px;
-*/  top:  0;
+  top:  0;
   left: 0
 }
-
+*/
 /* default dynamic display block pager */
 .ddblock-pager-nav a.activeSlide  { 
   background: #88f; 
@@ -105,55 +65,3 @@
   border: none; 
   display: block 
 }
-
-
-/* default dynamic display block pager */
-.headerimage-pager-nav a.activeSlide  { 
-  background: #88f; 
-}
-.headerimage-pager-nav a:focus { 
-  outline: none; 
-}
-
-/* default dynamic display block number pager */
-.headerimage-number-pager-nav  { 
-  padding-bottom: 3px;
-  position: relative; 
-  left: 0; 
-  display: block;
-}
-.headerimage-number-pager-nav a { 
-  margin: 0 5px 0 0; 
-  padding: 3px 5px; 
-  border: 1px solid #ccc; 
-  background: #fc0; 
-  text-decoration: none; 
-  display: block;
-}
-
-/* default dynamic display block image pager */
-.headerimage-image-pager-nav { 
-  width: auto; 
-  height: 220px;
-  margin: 15px; 
-  position: relative; 
-  left:0px; 
-}
-.headerimage-image-pager-nav li { 
-  width: 50px; 
-  float: left; 
-  margin: 8px; 
-  list-style: none; 
-}
-.headerimage-image-pager-nav a { 
-  width: 50px; 
-  padding: 3px; 
-  display: block; 
-  border: 1px solid #ccc; 
-  background: #fc0;
-}
-.headerimage-image-pager-nav img { 
-  border: none; 
-  display: block 
-}
-

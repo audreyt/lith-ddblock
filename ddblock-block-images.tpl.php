@@ -13,7 +13,7 @@
  * - $pager: Add a pager to the dynamic display block.
  * - $pager_height: Height of the container of the pager.
  * - $pager_width: Width of the container of the pager.
- * - $image_array: Array of images for the block.
+ * - $image_array: Array of images.
  *
  * notes: don't change the ID names, they are used by the jQuery script
  */
@@ -33,7 +33,7 @@ drupal_add_js($script, 'inline');
 ?>
 <?php //pager ?>
 <?php if ($pager <> 'none'): ?>
-  <div id="ddblock-<?php print $origin ."-". $pager ."-". $delta?>-nav" class="ddblock-<?php print $pager?>-nav ddblock-pager-nav" style="height: <?php print $pager_height?>px; width: <?php print $pager_width?>px;" >
+  <div id="ddblock-<?php print $origin ."-". $pager ."-". $delta?>-nav" class="ddblock-<?php print $pager?>-nav ddblock-pager-nav clear-block" style="height: <?php print $pager_height?>px; width: <?php print $pager_width?>px;" >
 <?php if ($pager == 'image-pager'): ?>
   <?php foreach ($content_array as $image_file): ?>
   <li><a href="#"><img src="<?php print base_path() . $image_file; ?>" alt="" width="50" height="50" /></a></li>
@@ -43,8 +43,8 @@ drupal_add_js($script, 'inline');
 <?php endif; ?>
 
 <?php //block content ?>
-<div id="ddblock<?php print "-". $origin ."-". $delta?>" class="ddblock-contents">
-<div class="ddblock-content">
+<div id="ddblock<?php print "-". $origin ."-". $delta?>" class="ddblock-contents clear-block">
+<div class="ddblock-content clear-block">
 <p>
 <?php foreach ($content_array as $image_file): ?>
   <img src="<?php print base_path() . $image_file; ?>" alt="" />

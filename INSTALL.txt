@@ -1,88 +1,87 @@
 // $Id$
 
--- REQUIREMENTS --
-
+REQUIREMENTS
+------------
 * Javascript-enabled web browser
 
-* jQuery update module
- <http://drupal.org/project/jquery update>
+* jQuery update module, <http://drupal.org/project/jquery update>
 
 * Header image module (optional) <http://drupal.org/project/headerimage>
+  Other block modules (optional)
 
 * jQuery easing plug-in (optional) <http://plugins.jquery.com/files/jquery.easing.1.1.1.js>
-  This jQuery plug-in is not included in the Drupal distribution because it is not licensed under GPL which is required by Drupal.
+  This jQuery plug-in is not included in the Drupal distribution because it is not licensed
+  under GPL which is required by Drupal.
 
-  
--- PRE-REQUISITES --
 
+PRE-REQUISITES
+--------------
 * If you are upgrading from a previous version, please
 
-   - backup your files and database in front of the upgrade
+  - disable your previous installation of the module
 
-  - run Drupal's update.php after updating the module's files.
-    Further information: http://drupal.org/upgrade/running-update-php
+  - uninstall your previous installation
+
+  - install the new release
 
   - read notes about important changes that may affect your site or theme in
     CHANGELOG.txt.
 
-  - update your theme, especially if you have any theme override functions for
-    ddblock.
 
-    
--- INSTALLATION --
-
-* The dynamic display block depends on the jQuery-update module. 
+INSTALLATION
+------------
+* The dynamic display block depends on the jQuery-update module.
 * Please install this module first.
 
 
--- JQUERY UPDATE INSTALLATION --
-
-Note: Drupal 6.3 already has the jQuery 1.2.6., but still we prefer to install 
+JQUERY UPDATE INSTALLATION
+--------------------------
+Note: Drupal 6.3 already has the jQuery 1.2.6., but still we prefer to install
   jQuery update module for future versions of jQuery.
 
 * jQuery Update module upgrades Drupal's stable version of jQuery in order to
   support the most current jQuery version available.
 
-* Download, extract and copy the jquery_update folder to your sites/all/modules 
+* Download, extract and copy the jquery_update folder to your sites/all/modules
    directory.
 
-* Enable the module at Administer >> Site building >> Modules. 
+* Enable the module at Administer >> Site building >> Modules.
 
 * Set the jQuery compression type at Administer >> Site configuration >> jQuery Update.
 
 For more information, see README.txt of the jQuery Update module.
-   
-   
--- DYNAMIC DISPLAY BLOCK INSTALLATION --
 
-* Download, extract and copy the ddblock folder to your sites/all/modules 
-   directory. 
-   
+
+DYNAMIC DISPLAY BLOCK INSTALLATION
+----------------------------------
+* Download, extract and copy the ddblock folder to your sites/all/modules
+   directory.
+
 * Enable the module at Administer >> Site building >> Modules
 
-For more information, see README.txt of the ddblock.
+For more information about configuration, see README.txt of the ddblock.
 
 
--- HEADERIMAGE INSTALLATION (optional)--
-
-* Download, extract and copy the headerimage folder to your sites/all/modules 
+HEADERIMAGE INSTALLATION (optional)
+-----------------------------------
+* Download, extract and copy the headerimage folder to your sites/all/modules
    directory.
 
 * Enable the module at Administer >> Site building >> Modules.
- 
+
 * Configure user permissions in Administer >> User management >> Permissions  >> headerimage module:
 
   - administer Header Image:
-  
+
   - maintain display conditions
 
   - view header image:
- 
-  For configuration options, see README.txt of the headerimage module. 
 
-  
---JQUERY EASING PLUG-IN INSTALLATION--
+  For configuration options, see README.txt of the headerimage module.
 
+
+JQUERY EASING PLUG-IN INSTALLATION
+----------------------------------
 * Download version 1.1.1 at http://plugins.jquery.com/project/Easing.
 
 * Copy jquery.easing.1.1.1.js to sites/all/modules/ddblock.
@@ -90,8 +89,9 @@ For more information, see README.txt of the ddblock.
 * Copy the following template files to the theme directory of the theme you are using.
 
     ddblock-block-content.tpl.php
-    ddblock-block-headerimage.tpl.php
-    dblock-block-images.tpl.php
+    ddblock-block-content-array.tpl.php
+    ddblock-block-images.tpl.php
 
-* Add drupal_add_js($module_path .'/jquery.easing.1.1.1.js','module') to the three template files,
+* Add drupal_add_js($module_path .'/jquery.easing.1.1.1.js','module') to the three
+  template files,
   just below the line drupal_add_js($module_path .'/jquery.cycle.all.pack.js','module').
