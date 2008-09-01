@@ -127,7 +127,7 @@ function ddblock_block($op='list', $delta=0, $edit = array()) {
       // if block is a ddblock instance invoke configure option of original block.
       // with form_alter the ddblock settings are added.
       $block = ddblock_get_blocks($delta);
-      if ($block->ddblock_enabled) {
+      if ($block->enabled) {
         $module = $block->module;
         $delta_original = $block->delta_original;
         return module_invoke($module, 'block', $op, $delta_original);
@@ -993,7 +993,7 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
   $ddblock = ddblock_get_blocks($delta);
   $delta_original = $ddblock->delta_original;
   $module_original = $ddblock->module;
-  $ddblock_enabled = $ddblock->ddblock_enabled;
+  $ddblock_enabled = $ddblock->enabled;
 
   if ($ddblock_enabled) {
     // get content.
