@@ -1504,7 +1504,7 @@ function ddblock_get_block_instances($delta = NULL, $reset = FALSE) {
 
   if (!isset($block_instances) || $reset) {
     $block_instances = array();
-    $result = db_query("SELECT * FROM {ddblock_block} where ddblock_enabled = 1");
+    $result = db_query("SELECT * FROM {ddblock_block} where enabled = 1");
     while ($block_instance = db_fetch_object($result)) {
       $block_instances[$block_instance->delta] = $block_instance;
     }
@@ -1522,7 +1522,7 @@ function ddblock_add_instance_form_submit($form, &$form_state) {
   $original_block = explode('_', $form_state['values']['block']);
   // Create new delta for block instance.
   $sql = "INSERT INTO {ddblock_block}
-          (title, module, delta_original, ddblock_enabled)
+          (title, module, delta_original, enabled)
           VALUES ('%s', '%s', '%s', %d)";
   $result = db_query($sql,
     $form_state['values']['title'], // new title of the block.
