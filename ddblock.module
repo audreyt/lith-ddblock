@@ -1161,7 +1161,7 @@ function ddblock_set_configuration_settings($origin, $delta, $edit) {
 
   // set pager to number_pager if input type is not images and image pager.
   if (($configuration_settings['input_type'] <> 'images') &&
-      ($configuration_settings['pager'] = 'image-pager')) {
+      ($configuration_settings['pager'] == 'image-pager')) {
     $configuration_settings['pager'] = 'number-pager';
   }
 
