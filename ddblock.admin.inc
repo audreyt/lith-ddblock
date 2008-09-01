@@ -84,7 +84,7 @@ function ddblock_block_add_form_validate($form, &$form_state) {
  * Add dynamic display block to database from "Add Block" form.
  */
 function ddblock_block_add_form_submit($form, &$form_state) {
-  db_query("INSERT INTO {ddblock_block} (title, module, ) VALUES ('%s', '%s')", $form_state['values']['title'], 'ddblock');
+  db_query("INSERT INTO {ddblock_block} (title, module) VALUES ('%s', '%s')", $form_state['values']['title'], 'ddblock');
 
   drupal_set_message(t('Dynamic display block %s added.', array('%s' => $form_state['values']['title'])));
 }
