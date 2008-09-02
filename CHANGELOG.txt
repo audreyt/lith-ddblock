@@ -1,5 +1,12 @@
 release notes
 
+2008-sep-01
+
+        by ppblaauw: removed the ddblock-block-headerimage.tpl.php file.
+#302393 by ppblaauw: fixed unknown column issue.
+#302155 by ppblaauw: fixed pager issue.
+#302393 by ppblaauw: fixed insert of block bug.
+
 2008-aug-31
 add functionality for block instances so all blocks can be used with 
     the dynamic display block module
@@ -21,8 +28,6 @@ issues
 
 #295606 regular expression fix
 #299500 CSS changed 
-
-
 
 
 
