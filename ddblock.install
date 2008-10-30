@@ -79,3 +79,15 @@ function ddblock_uninstall() {
   cache_clear_all('variables', 'cache');
   drupal_set_message(t("Dynamic display block module uninstalled successfully."));
 }
+
+/**
+ * Set BLOCK_NO_CACHE for all declared ddblocks
+ */
+function ddblock_update_6001() {
+  $ret = array();
+  
+  // set BLOCK_NO_CACHE
+  db_query('UPDATE {blocks} SET cache=-1 WHERE module=\'ddblock\'');
+
+  return $ret;
+}

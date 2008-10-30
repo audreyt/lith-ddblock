@@ -119,7 +119,9 @@ function ddblock_block($op='list', $delta=0, $edit = array()) {
       $list = array();
       foreach ($blocks as $block) {
         $list[$block->delta] = array('info' => check_plain($block->title));
-      }
+        // Don't cache blocks.
+        $list[$block->delta]['cache'] = BLOCK_NO_CACHE;
+     }
       return $list;
 
     // the configuration page of the block.
@@ -923,16 +925,20 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
   // Set image container height and width.
   $script = "Drupal.behaviors.ddblock". $origin . $delta ."content = function (context) {\n";
   $script .= "$('#ddblock-". $origin ."-". $delta ." .ddblock-content:not(.ddblock-processed)', context)\n";
-  $script .= ".css('height','". $image_container_height ."px')\n";
-  $script .= ".css('width','". $image_container_width ."px')\n";
+  if (($image_container_height > 12) && ($image_container_width > 12 )) {
+    $script .= ".css('height','". $image_container_height ."px')\n";
+    $script .= ".css('width','". $image_container_width ."px')\n";
+  }
   $script .= ".addClass('ddblock-processed')\n";
   $script .= " };\n";
 
   //Set image height and width.
   $script .= "Drupal.behaviors.ddblock". $origin . $delta ."img = function (context) {\n";
   $script .= "$('#ddblock-". $origin ."-". $delta ." .". $origin ."-content img:not(.ddblock-processed)', context)\n";
-  $script .= ".css('height','". $image_height ."px')\n";
-  $script .= ".css('width','". $image_width ."px')\n";
+  if (($image_height > 0) && ($image_width > 0 )) {
+    $script .= ".css('height','". $image_height ."px')\n";
+    $script .= ".css('width','". $image_width ."px')\n";
+  }  
   $script .= ".addClass('ddblock-processed')\n";
   $script .= " };\n";
 
@@ -984,8 +990,10 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
     $script .= ", delay: -4000 \n";
   }
   $script .= " })\n";
-  $script .= ".css('height','". $height ."px')\n";
-  $script .= ".css('width','". $width ."px')\n";
+  if (($height > 0) && ($width > 0 )) {
+    $script .= ".css('height','". $height ."px')\n";
+    $script .= ".css('width','". $width ."px')\n";
+  }  
   $script .= ".addClass('ddblock-processed')\n";
   $script .= " };\n";
 
@@ -1468,8 +1476,8 @@ function ddblock_add_instance_form($form_state) {
     if ($value) {
 
       //$option[0]  contains module name, $option[1]  contains delta, $option[2]  contains block title,
-      $option = explode('_', $value);
-      $options[$option[0] .'_'. $option[1]] = $option[0] .' - '. $option[2];
+      $option = explode(':', $value);
+      $options[$option[0] .':'. $option[1]] = $option[0] .' - '. $option[2];
     }
   }
 
@@ -1519,7 +1527,7 @@ function ddblock_get_block_instances($delta = NULL, $reset = FALSE) {
 function ddblock_add_instance_form_submit($form, &$form_state) {
 
   // Get the original block info.
-  $original_block = explode('_', $form_state['values']['block']);
+  $original_block = explode(':', $form_state['values']['block']);
   // Create new delta for block instance.
   $sql = "INSERT INTO {ddblock_block}
           (title, module, delta_original, enabled)
@@ -1556,7 +1564,7 @@ function ddblock_get_ddblock_enabled_module_blocks() {
   foreach ($block_types as $value ) {
     if ($value) {
       //$option[0]  contains module name, $option[1]  contains delta, $option[2]  contains block title.
-      $option = explode('_', $value);
+      $option = explode(':', $value);
       $blocks[$i]['module'] = $option[0];
       $blocks[$i]['delta'] = $option[1];
       $i++;

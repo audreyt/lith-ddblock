@@ -273,7 +273,7 @@ function ddblock_settings_form() {
   foreach ($blocks as $block) {
     // Don't include ddblock module blocks in the list.
     if ($block['module'] != 'ddblock') {
-      $options[$block['module'] .'_'. $block['delta'] .'_'. $block['info']] = $block['module'] .' - '. $block['info'];
+      $options[$block['module'] .':'. $block['delta'] .':'. $block['info']] = $block['module'] .' - '. $block['info'];
     }
   }
 

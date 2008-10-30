@@ -1,13 +1,20 @@
 release notes
 
-2008-sep-01
+2008-oct-30 ddblock 6.x-1.0-rc2
+
+#311352 by ppblaauw: fixed insert of views instance.
+#312622 by ppblaauw: fixed block caching.
+#327459 by ppblaauw: make custom image size possible.
+
+2008-sep-01 ddblock 6.x-1.0-rc1
 
         by ppblaauw: removed the ddblock-block-headerimage.tpl.php file.
 #302393 by ppblaauw: fixed unknown column issue.
 #302155 by ppblaauw: fixed pager issue.
 #302393 by ppblaauw: fixed insert of block bug.
 
-2008-aug-31
+2008-aug-31 ddblock 6.x-1.0-beta
+
 add functionality for block instances so all blocks can be used with 
     the dynamic display block module
 change headerimage specific template file to a block content template file.
