@@ -17,20 +17,6 @@
  *
  * notes: don't change the ID names, they are used by the jQuery script
  */
-
-// get module path to dynamic display block module
-//$module_path = drupal_get_path('module', 'ddblock'); 
-
-//add jcycle plugin
-//drupal_add_js($module_path .'/jquery.cycle.all.pack.js', 'module');
-//drupal_add_js($module_path .'/jquery.easing.1.1.1.js', 'module');
-
-// add Cascading style sheet
-//drupal_add_css($module_path .'/ddblock.css', 'module', 'all', FALSE);
-
-// add dynamic display block javascript
-//drupal_add_js($script, 'inline');
-
 ?>
 <?php //pager ?>
 <?php if ($pager <> 'none'): ?>
