@@ -79,20 +79,19 @@ JQUERY EASING PLUG-IN INSTALLATION
 
 DDBLOCK THEMES INSTALLATION
 ---------------------------
-* Download the theme package from 
+* Download the theme package (upright10-50.zip) from http://ddblock.myalbums.biz/node/17
 
 * Extract the zip file to a temporary directory
 
 * Copy the custom directory with all subdirectories to the theme directory of the 
-  theme you use. (which is propably at sites/all/themes/[YOUR_THEME_NAME])
+  theme you use. (which is probably at sites/all/themes/[YOUR_THEME_NAME])
 
 EXPORT PACKAGE
 --------------  
+* Download the export package (Export_files.zip) from http://ddblock.myalbums.biz/node/17
   
 DDBLOCK EXAMPLE CONTENT TYPE AND VIEW 
 -------------------------------------
-* Download the export package from http://ddblock.myalbums.biz/node/17
-
 You can use the News item content type export to import the News item content type 
 into your Drupal installation.
 
