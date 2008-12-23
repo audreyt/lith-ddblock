@@ -1,5 +1,29 @@
 release notes
 
+2008-dec-24
+
+Add init hook to add js and css files
+Remove ahah functionality for pager dimensions
+Don't cache ddblock blocks
+Node teaser or full node view
+Overflow hidden checkbox
+Add advanced dynamic display block functionality
+Add standard templates
+Add custom templates 
+Add prev/next pager
+Add custom pager
+Add pagercontainer
+Add pager position
+Add pager event setting
+Add slidetext functionality
+Add jQuery effect for Slide text
+Add better CCK and Views support
+Longer timeout and speed settings
+Made admin form more dynamic with jQuery functionality
+
+#issues
+#334663 by ppblaauw: fixed all images display briefly on page load
+
 2008-oct-30 ddblock 6.x-1.0-rc2
 
 #311352 by ppblaauw: fixed insert of views instance.
@@ -13,8 +37,7 @@ release notes
 #302155 by ppblaauw: fixed pager issue.
 #302393 by ppblaauw: fixed insert of block bug.
 
-2008-aug-31 ddblock 6.x-1.0-beta
-
+2008-aug-31
 add functionality for block instances so all blocks can be used with 
     the dynamic display block module
 change headerimage specific template file to a block content template file.
@@ -29,12 +52,18 @@ optimize get_blocks code.
 remove headerimage specific code.
 strip css file to minimum.
 clean up AHAH callbacks.
-new cycle plugin version: 2.26
 
 issues
 
 #295606 regular expression fix
 #299500 CSS changed 
+
+
+
+
+
+
+
 
 
 

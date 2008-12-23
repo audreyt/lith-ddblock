@@ -1,25 +1,26 @@
 // $Id$
 
-Note: This is an beta version of the module for testing and review purpose only.
-      Although the module functionally works. Don't use it on a production site.
-      Please test and review the module and post your issues on the project page
-      http://drupal.org/project/ddblock to help improve the module.
+Note: This is version RC3 of the module. Please test and review the module and post 
+your issues on the project page http://drupal.org/project/ddblock to help improve 
+the module.
 
       
 SUMMARY 
 -------
-Dynamic display block is a block module which enables you to create blocks to present
-content in a dynamic way using the jQuery Cycle plug-in and optionally the jQuery 
-easing plug-in.
+The Dynamic display block module enables you to create blocks to present content 
+in a dynamic way. For creating slideshow effects it uses the jQuery Cycle plug-in.
 
-You can select images as the content of a dynamic display block by specifying a
-folder that contains the image files or select a node from a content type.
-The teaser of the node of this content type will be used as the content of the
-dynamic display block. A third way to provide content for the dynamic display block
-is making an instance of an existing block and use the content of this block.
+There are three ways to specify content for the Dynamic display block module:
 
-Several effects and other setting can be set in the configuration settings of a
-dynamic display block.
+* A folder containing image files
+* A node from a content type with multiple input
+* An instance of any created block
+
+The headerimage module or CCK and Views makes retrieving and displaying content with 
+the Dynamic display block module very flexible.
+
+Several effects and other setting can be set in the configuration settings of the
+Dynamic display block module.
 
 
 MORE INFORMATION
@@ -60,6 +61,7 @@ Headerimage  - blocks with images
 Comments     - Recent comments
 Forum        - Active forum topics
 Forum        - New forum topics
+CCK          - Content types
 Views        - blocks with images, lists, tables
 Worldclock   - World clock
 etc.
@@ -157,6 +159,11 @@ Custom Settings:
                    The settings transition effect, container and pager from
                    the settings are used, but can be overriden.
 
+ADVANCED SLIDESHOWS
+-------------------
+See the Advanced slideshow tutorial on http://ddblock.myalbums.biz/node/747 for a 
+tutorial how to make advanced slideshows.                   
+                   
 TROUBLESHOOTING
 ---------------
 * If a dynamic display block is not displayed, check the following steps:

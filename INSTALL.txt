@@ -6,25 +6,29 @@ REQUIREMENTS
 
 * jQuery update module, <http://drupal.org/project/jquery update>
 
-* Header image module (optional) <http://drupal.org/project/headerimage>
-  Other block modules (optional)
-
 * jQuery easing plug-in (optional) <http://plugins.jquery.com/files/jquery.easing.1.1.1.js>
   This jQuery plug-in is not included in the Drupal distribution because it is not licensed
   under GPL which is required by Drupal.
 
+* Header image module (optional) <http://drupal.org/project/headerimage>
+  Other block modules (optional)
+  
+For advanced options
+  
+* CCK module (optional) <http://drupal.org/project/cck>
+* ImageApi (optional) <http://drupal.org/project/imageapi>
+* FileField (optional) <http://drupal.org/project/filefield>
+* ImageField (optional) <http://drupal.org/project/imagefield>
+
+* Views module (optional) <http://drupal.org/project/views>
 
 PRE-REQUISITES
 --------------
 * If you are upgrading from a previous version, please
 
-  - disable your previous installation of the module
-
-  - uninstall your previous installation
-
-  - install the new release
-
-  - read notes about important changes that may affect your site or theme in
+  - Delete the previous ddblock module directory
+  
+  - Read notes about important changes that may affect your site or theme in
     CHANGELOG.txt.
 
 
@@ -57,28 +61,11 @@ DYNAMIC DISPLAY BLOCK INSTALLATION
 * Download, extract and copy the ddblock folder to your sites/all/modules
    directory.
 
-* Enable the module at Administer >> Site building >> Modules
-
-For more information about configuration, see README.txt of the ddblock.
-
-
-HEADERIMAGE INSTALLATION (optional)
------------------------------------
-* Download, extract and copy the headerimage folder to your sites/all/modules
-   directory.
-
 * Enable the module at Administer >> Site building >> Modules.
 
-* Configure user permissions in Administer >> User management >> Permissions  >> headerimage module:
+* Run update.php if you upgrade the module from a previous version.
 
-  - administer Header Image:
-
-  - maintain display conditions
-
-  - view header image:
-
-  For configuration options, see README.txt of the headerimage module.
-
+For more information about configuration, see README.txt of the ddblock.
 
 JQUERY EASING PLUG-IN INSTALLATION
 ----------------------------------
@@ -86,12 +73,58 @@ JQUERY EASING PLUG-IN INSTALLATION
 
 * Copy jquery.easing.1.1.1.js to sites/all/modules/ddblock.
 
-* Copy the following template files to the theme directory of the theme you are using.
-
-    ddblock-block-content.tpl.php
-    ddblock-block-content-array.tpl.php
-    ddblock-block-images.tpl.php
-
 * Add drupal_add_js($module_path .'/jquery.easing.1.1.1.js','module') to the three
   template files,
   just below the line drupal_add_js($module_path .'/jquery.cycle.all.pack.js','module').
+
+DDBLOCK THEMES INSTALLATION
+---------------------------
+* Download the theme package from 
+
+* Extract the zip file to a temporary directory
+
+* Copy the custom directory with all subdirectories to the theme directory of the 
+  theme you use. (which is propably at sites/all/themes/[YOUR_THEME_NAME])
+
+EXPORT PACKAGE
+--------------  
+  
+DDBLOCK EXAMPLE CONTENT TYPE AND VIEW 
+-------------------------------------
+* Download the export package from http://ddblock.myalbums.biz/node/17
+
+You can use the News item content type export to import the News item content type 
+into your Drupal installation.
+
+Note:
+
+You need to have CCK, imageapi, filefield and imagefield installed and enabled on 
+your Drupal installation, otherwise the import will not be successful.
+
+For more information see the Advanced slideshow tutorial on
+http://ddblock.myalbums.biz/node/751
+
+You can use the News items views block export to import the News items views block 
+into your Drupal installation.
+
+For more information see the Advanced slideshow tutorial on
+http://ddblock.myalbums.biz/node/753
+  
+DDBLOCK PREPROCESS FUNCTIONS INSTALLATION
+-----------------------------------------
+* The preprocess functions are included in the export package
+
+* Copy the preprocess functions to your template.php file in your theme
+
+* Rename [THEME_NAME] to the name of your theme for both preprocess functions
+
+* Change the view_name in both preprocess functions if your view has another name 
+  then: news_items
+ 
+* Change the fields to convert if you have other fieldnames in your view
+
+Note: You can see the view_name and the available view_fields by uncommenting the
+lines at the top of each preprocess function.
+
+For more information see the Advanced slideshow tutorial on 
+http://ddblock.myalbums.biz/node/747

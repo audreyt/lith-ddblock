@@ -2,7 +2,5 @@
 name = Dynamic display block
 description = Displays dynamic content in a block.
 core = 6.x
-php = 5.1
-package = Jquery
 
 dependencies[] = "jquery_update"
