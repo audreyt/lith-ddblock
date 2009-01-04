@@ -139,7 +139,9 @@ Drupal.behaviors.ddblockShowHideCustomTemplateOptions = function(context) {
       $("#ddblock-pager-position-wrapper").show();
       $('#edit-pager-wrapper option[value="number-pager"]').show();
       $('#edit-pager-wrapper option[value="prev-next-pager"]').show();
-      $('#edit-pager-wrapper option[value="custom-pager"]').show();    }    
+      $('#edit-pager-wrapper option[value="custom-pager"]').show();
+      $('#edit-pager-wrapper #edit-pager').val('custom-pager');
+    }    
     return false;
   }).trigger('change')
 };

@@ -437,7 +437,7 @@ function ddblock_block_configure($delta) {
     '#description' => t("The transition effect between content."),
   );
 
-  $options = drupal_map_assoc(array(250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000));
+  $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000));
 
   $form['block_settings']['settings']['speed'] = array(
     '#type' => 'select',
@@ -445,7 +445,7 @@ function ddblock_block_configure($delta) {
     '#default_value' => $speed,
     '#options' => $options,
     '#required' => TRUE,
-    '#description' => t("Speed of the transitions (1000 = 1 second)."),
+    '#description' => t("Speed of the transitions (1000 = 1 second, 0 = direct)."),
   );
 
   $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000));
@@ -886,14 +886,14 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       '#description' => t("The transition effect between content."),
       );
 
-      $options = drupal_map_assoc(array(250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000));
+      $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000));
       $form['block_settings']['settings']['speed'] = array(
       '#type' => 'select',
       '#title' => t('Speed'),
       '#default_value' => $speed,
       '#options' => $options,
       '#required' => TRUE,
-      '#description' => t("Speed of the transitions (1000 = 1 second)."),
+      '#description' => t("Speed of the transitions (1000 = 1 second, 0 = direct)."),
       );
 
       $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000, 30000));
@@ -1348,7 +1348,7 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
           // Load the view
           if ($view = views_get_view($name)) {
             if ($view->access($display_id)) {
-              $view->render();
+              $view->preview();
               $content=$view->result;
             }
           }

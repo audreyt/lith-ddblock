@@ -101,7 +101,7 @@ Drupal.behaviors.ddblockCycle = function (context) {
     }
 
     // show pager count (0 of x)
-    $('#count2').html((opts.currSlide + 1) + " of " + opts.slideCount); 
+    $("#ddblock-"+ opts.ddblocknr + ' ' + '#count2').html((opts.currSlide + 1) + " of " + opts.slideCount); 
     
     // Only show prev if previous slide exist - Only show next if next slide exist
     var index = $(this).parent().children().index(this);
@@ -163,6 +163,7 @@ Drupal.behaviors.ddblockCycle = function (context) {
       options.pagerEvent = pagerEvent;
       if (pagerEvent == 'mouseover' || pagerEvent == 'click') {
         options.fastOnEvent = true; 
+        options.pauseOnPagerHover = true;
       }
        
       //set expression for selecting slides (if something other than all children is required)
@@ -170,6 +171,9 @@ Drupal.behaviors.ddblockCycle = function (context) {
       
       //set speed of the transition (any valid fx speed value)
       options.speed = ddblockSettings.speed;
+      if (options.speed == 0) {
+        options.speed = 1;
+      };
       
       //set timeout in milliseconds between slide transitions (0 to disable auto advance)
       options.timeout = ddblockSettings.timeOut;

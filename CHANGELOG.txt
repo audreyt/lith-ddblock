@@ -1,5 +1,15 @@
 release notes
 
+2009-jan-04
+
+Fixed custom-pager issue in config page
+Fixed prev-next pager issue
+Add speed direct
+
+#Issues
+#351453 Fixed wrong Content template
+#351159 Fixed number of nodes issue
+
 2008-dec-24
 
 Add init hook to add js and css files
