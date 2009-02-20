@@ -19,7 +19,7 @@ $number_of_items = 6;
 $number_of_items_per_row=3;
 ?>
 
-<?php //combo pager. ?>
+<?php //custom pager. ?>
  
 <?php if ($pager == 'custom-pager'): ?>
  <?php if ($pager_position == 'bottom' || $pager_position == 'both'): ?>
@@ -31,15 +31,9 @@ $number_of_items_per_row=3;
     <?php $item_counter=0; ?>
     <?php foreach ($pager_items as $pager_item): ?>
      <div class="<?php print $pager ?>-item <?php print $pager ?>-item-<?php print $item_counter ?>">
-<div class="corners"> 
       <div class="<?php print $pager ?>-item-inner"> 
-       <a href="#" title="click to navigate to topic"><img src="<?php print base_path() . $pager_item['image']; ?>"  alt="testing"/><?php print $pager_item['text']; ?> </a>
+       <a href="#" title="navigate to topic"><?php print $pager_item['image']; ?><?php print $pager_item['text']; ?></a>
       </div>
- <div class="tl"></div>
- <div class="tr"></div>
- <div class="bl"></div>
- <div class="br"></div>
-</div>
      </div>
      <?php $item_counter++; if ($item_counter == $number_of_items_per_row):?>
       <div class="spacer-horizontal"><b></b></div>

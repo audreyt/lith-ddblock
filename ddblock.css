@@ -58,12 +58,13 @@
 .ddblock-image-pager a:focus { 
   outline: none; 
 }
-.block ul.ddblock-image-pager { 
+ul.ddblock-image-pager { 
   margin: 0 0 3px 0; 
   padding: 0; 
+  line-height:1em;
 }
 .ddblock-image-pager li { 
-  width: 61px;         /*width of list item 55 from picture width + 2 X 3px padding*/
+/* width: 61px;         /*width of list item 55 from picture width + 2 X 3px padding*/
   float: left; 
   margin: 0 3px 3px 0; /* margin right and bottom between pagers */
   padding: 0;
@@ -72,16 +73,17 @@
   background: #fff;
 }
 .ddblock-image-pager li a { 
-  width: 55px;         /* width of list item*/
-  height: 55px;        /*height of list item*/
+/*  width: 55px;         /* width of list item*/
+/*  height: 55px;        /*height of list item*/
   padding: 3px; 
   display: block; 
   background: #fff;
 }
 .ddblock-image-pager li img { 
-  padding: 0;
   border: none; 
   display: inline; 
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* default dynamic display block custom pager */

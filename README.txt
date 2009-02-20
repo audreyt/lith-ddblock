@@ -1,22 +1,23 @@
 // $Id$
 
-Note: This is version RC3 of the module. Please test and review the module and post 
-your issues on the project page http://drupal.org/project/ddblock to help improve 
+Note: This is version RC5 of the module. Please test and review the module and post
+your issues on the project page http://drupal.org/project/ddblock to help improve
 the module.
 
-      
-SUMMARY 
+
+SUMMARY
 -------
-The Dynamic display block module enables you to create blocks to present content 
+The Dynamic display block module enables you to create blocks to present content
 in a dynamic way. For creating slideshow effects it uses the jQuery Cycle plug-in.
 
-There are three ways to specify content for the Dynamic display block module:
+There are four ways to specify content for the Dynamic display block module:
 
 * A folder containing image files
 * A node from a content type with multiple input
+* CCK and Views
 * An instance of any created block
 
-The headerimage module or CCK and Views makes retrieving and displaying content with 
+The headerimage module or CCK and Views makes retrieving and displaying content with
 the Dynamic display block module very flexible.
 
 Several effects and other setting can be set in the configuration settings of the
@@ -25,8 +26,14 @@ Dynamic display block module.
 
 MORE INFORMATION
 ----------------
-You can find more information in the handbook pages on Drupal.org 
+You can find more information in the handbook pages on Drupal.org
 http://drupal.org/node/293714
+
+Other tutorials can be found on http://ddblock.myalbums.biz
+Basic tutorial: http://ddblock.myalbums.biz/tutorial
+Advanced slideshow tutorial: http://ddblock.myalbums.biz/node/747
+
+Frequenly asked questions on http://ddblock.myalbums.biz/faq
 
 You can see a demo of the module at http://ddblock.myalbums.biz/
 
@@ -36,7 +43,7 @@ REQUIREMENTS
 jQuery-update module.
 
 Note: Drupal 6.3 already has the jQuery 1.2.6., but still we prefer to install
-      jQuery update module for future versions of jQuery.
+      jQuery update module for future versions of jQuery. (soon 1.3.x)
 
 See INSTALL.txt
 
@@ -81,7 +88,7 @@ etc.
 
 CONFIGURATION
 -------------
-* Configure user permissions in Administer >> User management >> Permissions  
+* Configure user permissions in Administer >> User management >> Permissions
   >> ddblock module:
 
   - administer dynamic display blocks:
@@ -161,20 +168,23 @@ Custom Settings:
 
 ADVANCED SLIDESHOWS
 -------------------
-See the Advanced slideshow tutorial on http://ddblock.myalbums.biz/node/747 for a 
-tutorial how to make advanced slideshows.                   
-                   
+See the Advanced slideshow tutorial on http://ddblock.myalbums.biz/node/747 for a
+tutorial how to make advanced slideshows.
+
 TROUBLESHOOTING
 ---------------
 * If a dynamic display block is not displayed, check the following steps:
 
   - Is the 'view dynamic display blocks' permission enabled?
-
   - Did you put the block in one of the regions?
+
+  Also have a look in the FAQ
 
 
 FAQ
 ---
+For Frequently Asked Questions - http://ddblock.myalbums.biz/faq
+
 
 CONTACT
 -------
@@ -185,4 +195,5 @@ Major rewrite by current Maintainers:
 * Iren T. Biasong (iren_cruz) - http://drupal.org/user/305000
 
 We also offer installation, development, theming, customization.
-Visit http://ddblock.myalbums.biz for more information.
+You can contact us via the contact form on http://ddblock.myalbums.biz.
+or via email to ppblaauw (at) gmail.com

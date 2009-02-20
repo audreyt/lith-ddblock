@@ -32,6 +32,15 @@ PRE-REQUISITES
     CHANGELOG.txt.
 
 
+UPGRADING
+---------
+* RC5 uses new theme packages and preprocess functions. 
+* To download and install the new themes see: 
+  DDBLOCK THEMES INSTALLATION 
+* To download and install the new preprocess functions see: 
+  DDBLOCK PREPROCESS FUNCTIONS INSTALLATION
+
+  
 INSTALLATION
 ------------
 * The dynamic display block depends on the jQuery-update module.
@@ -73,9 +82,14 @@ JQUERY EASING PLUG-IN INSTALLATION
 
 * Copy jquery.easing.1.1.1.js to sites/all/modules/ddblock.
 
-* Add drupal_add_js($module_path .'/jquery.easing.1.1.1.js','module') to the three
-  template files,
-  just below the line drupal_add_js($module_path .'/jquery.cycle.all.pack.js','module').
+* Add 
+  //add easing plugin
+  drupal_add_js($ddblock_path .'/js/jquery.easing.1.1.1.js', 'module');
+
+  to the ddblock.module file just below line 26:
+
+  //add jcycle plugin
+  drupal_add_js($ddblock_path .'/js/jquery.cycle.all.min.js', 'module');
 
 DDBLOCK THEMES INSTALLATION
 ---------------------------
@@ -127,3 +141,6 @@ lines at the top of each preprocess function.
 
 For more information see the Advanced slideshow tutorial on 
 http://ddblock.myalbums.biz/node/747
+
+For frequently asked questions see the FAQ on
+http://ddblock.myalbums.biz/faq

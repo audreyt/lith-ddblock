@@ -11,7 +11,8 @@
  * - $pager: Pager type to add the dynamic display block.
  * - $pager_height: Pager container height.
  * - $pager_width: Pager container width.
- * - $content: themed content
+ * - $imgcache_pager_item: Image cache preset name for the pager item.
+ * - $content: themed content.
  *
  * notes: don't change the following ID's and class names, they are used by the jQuery script to show dynamic display blocks.
  *  <div id="ddblock-<?php print $delta; ?>" - for the whole block
@@ -37,11 +38,21 @@
   <?php if (($pager == 'image-pager')): ?>
    <!-- image pager. -->
    <ul id="ddblock-<?php print $pager ."-". $delta ?>" class="ddblock-<?php print $pager ?> ddblock-pager clear-block" style="height: <?php print $pager_height ?>px; width:<?php print $pager_width ?>px;">
+    <?php if($imgcache_pager_item != '<none>'):?>
+    <?php foreach ($content as $image_file): ?>
+     <li>
+       <a href="#" title="click to navigate to topic">
+        <?php print theme('imagecache', $imgcache_pager_item, $image_file); ?>
+       </a>
+      </li>
+     <?php endforeach; ?>    
+    <?php else :?>
     <?php foreach ($content as $image_file): ?>
      <li>
       <a href="#" title="click to navigate to topic"><img src="<?php print base_path() . $image_file; ?>" alt="" width="55" height="55" /></a>
      </li>
     <?php endforeach; ?> 
+    <?php endif;?>
    </ul>
   <?php endif; ?>
 
@@ -53,13 +64,18 @@
    </div>
   <?php endif; ?>  
   
-  
   <?php if ($output_type == 'images') : ?>
    <div class="ddblock-container"> 
-   <?php foreach ($content as $image_file): ?>
-    <img src="<?php print base_path() . $image_file; ?>" alt="" width="<?php print $image_width;?>px" height="<?php print $image_height; ?>px" />
-   <?php endforeach; ?>    
-   </div>
+    <?php if($imgcache_slide != '<none>'):?>
+     <?php foreach ($content as $image_file): ?>
+      <?php print theme('imagecache', $imgcache_slide, $image_file); ?>
+     <?php endforeach; ?>    
+    <?php else :?>
+     <?php foreach ($content as $image_file): ?>
+      <img src="<?php print base_path() . $image_file; ?>" alt="" width="55px" height="55px" />
+     <?php endforeach; ?>    
+    <?php endif;?>
+    </div>
   <?php endif; ?>
   
   <?php if ($output_type == 'content_array') : ?>
@@ -70,7 +86,6 @@
    </div>
   <?php endif; ?>
 
-
   <?php if ($output_type == 'view_content') : ?>
    <div class="ddblock-container"> 
     <?php print($content); ?>
@@ -78,7 +93,3 @@
   <?php endif; ?>
  </div>
 </div>
-
-
-
-

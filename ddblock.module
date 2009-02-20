@@ -19,12 +19,12 @@ function ddblock_help($path, $arg) {
   }
 }
 
-function ddblock_init() {
+function ddblock_init_js_css() {
   // get module path to dynamic display block module
   $ddblock_path = drupal_get_path('module', 'ddblock');
 
   //add jcycle plugin
-  drupal_add_js($ddblock_path .'/js/jquery.cycle.all.pack.js', 'module');
+  drupal_add_js($ddblock_path .'/js/jquery.cycle.all.min.js', 'module');
 
   //add easing plugin
   drupal_add_js($ddblock_path .'/js/jquery.easing.1.1.1.js', 'module');
@@ -34,9 +34,6 @@ function ddblock_init() {
 
   // add ddblock js file
   drupal_add_js($ddblock_path .'/js/ddblock.js', 'module');
-
-  // add ddblock js file
-  drupal_add_js($ddblock_path .'/js/ddblock.admin.js', 'module');
 
   // add Cascading style sheet
   drupal_add_css($ddblock_path .'/ddblock.css', 'module', 'all', TRUE);
@@ -219,11 +216,15 @@ function ddblock_block_configure($delta) {
   $container = _ddblock_get_variable($configuration_settings['container'], 'img');
   $content_type = _ddblock_get_variable($configuration_settings['content_type'], 'none');
   $custom_jquery = _ddblock_get_variable($configuration_settings['custom_jquery'], '');
-  $folder = _ddblock_get_variable($configuration_settings['folder'], 'files/images/ddblock');
+  // get folder relative to the drupal folder settings
+  $folder = _ddblock_get_variable($configuration_settings['folder'], file_directory_path());
   $fx = _ddblock_get_variable($configuration_settings['fx'], "fade");
   $height = _ddblock_get_variable($configuration_settings['height'], 195);
   $image_height = _ddblock_get_variable($configuration_settings['image_height'], 183);
   $image_width = _ddblock_get_variable($configuration_settings['image_width'], 183);
+  $imgcache_toggle = _ddblock_get_variable($configuration_settings['imgcache_toggle'], 0);
+  $imgcache_slide = _ddblock_get_variable($configuration_settings['imgcache_slide'], '<none>');
+  $imgcache_pager_item = _ddblock_get_variable($configuration_settings['imgcache_pager_item'], '<none>');
   $input_type = _ddblock_get_variable($configuration_settings['input_type'], 'images');
   $max_image = _ddblock_get_variable($configuration_settings['max_image'], 2);
   $next = _ddblock_get_variable($configuration_settings['next'], 1);
@@ -246,6 +247,10 @@ function ddblock_block_configure($delta) {
   $timeout = _ddblock_get_variable($configuration_settings['timeout'], 3000);
   $width = _ddblock_get_variable($configuration_settings['width'], 195);
 
+  // get module path to dynamic display block module
+  $ddblock_path = drupal_get_path('module', 'ddblock');
+  // add ddblock js file
+  drupal_add_js($ddblock_path .'/js/ddblock.admin.js', 'module');
 
   // Need this for AJAX.
   $form['#cache'] = TRUE;
@@ -290,7 +295,7 @@ function ddblock_block_configure($delta) {
     '#size' => 25,
     '#maxlength' => 100,
     '#required' => FALSE,
-    '#description' => t("The folder containing image files to be used as the content of dynamic display block. Use a relative path. Use a relative path, like <strong>files/images/ddblock</strong>."),
+    '#description' => t("The folder containing image files to be used as the content of dynamic display block. The folder is relative to the drupal files path in admin > settings > file-system. e.g. <strong>images/ddblock</strong>."),
   );
 
     $form['content']['image_folder']['max_image'] = array(
@@ -338,7 +343,7 @@ function ddblock_block_configure($delta) {
 
   ddblock_select_nodes_form($form, $content_type, $nodes);
 
-  $options = array('body' => t('Body'), 
+  $options = array('body' => t('Body'),
                    'teaser' => t('Teaser'),
                   );
   $form['content']['content_types']['node_body_teaser'] = array(
@@ -351,6 +356,61 @@ function ddblock_block_configure($delta) {
     '#description' => t("Show node body or teaser"),
   );
 
+
+  // if image cache module exist make it possible to use image cache presets
+  if ((module_exists('imagecache')) && (is_array(imagecache_presets()))) {
+    $imgcache_options = array('<none>' => '<none>');
+    // get imagecache presets using imagecache function
+    foreach (imagecache_presets() as $preset) {
+      $name = $preset['presetname'];
+      $imgcache_options[$name] = $name;
+    }
+    $imgcache_slide_desc = t("Imagecache preset to use for slide image");
+    $imgcache_pager_item_desc = t("Imagecache preset to use for pager-item image. Only for themes that use an image in the pager");
+
+    // Image cache toggle
+    $form['block_settings']['imgcache_toggle'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Use imagecache presets'),
+      '#default_value' => $imgcache_toggle,
+      '#required' => FALSE,
+      '#description' => t("Use imagecache presets for images"),
+      '#weight' => -5,
+    );
+
+    // Image cache settings.
+    $form['block_settings']['imgcache'] = array(
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#title' => t('Image cache preset settings'),
+      '#prefix' => '<div id="ddblock-imgcache-settings-wrapper"'. $extra .'>',
+      '#suffix' => '</div>',
+      '#weight' => -4,
+    );
+
+    $form['block_settings']['imgcache']['imgcache_slide'] = array(
+      '#type' => 'select',
+      '#title' => t('Imagecache slide image'),
+      '#default_value' => $imgcache_slide,
+      '#options' => $imgcache_options,
+      '#multiple' => FALSE,
+      '#required' => FALSE,
+      '#description' => $imgcache_slide_desc,
+      '#weight' => 1,
+    );
+
+    $form['block_settings']['imgcache']['imgcache_pager_item'] = array(
+      '#type' => 'select',
+      '#title' => t('Imagecache pager-item image'),
+      '#default_value' => $imgcache_pager_item,
+      '#options' => $imgcache_options,
+      '#multiple' => FALSE,
+      '#required' => FALSE,
+      '#description' => $imgcache_pager_item_desc,
+      '#weight' => 2,
+    );
+
+  }
 
   // content container settings.
   $form['content']['content_container'] = array(
@@ -397,6 +457,7 @@ function ddblock_block_configure($delta) {
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
     '#title' => t('Image settings'),
+    '#description' => t('Set to 0 (zero) for both the height and the width to be able to use the original image size or imagecache presets'),
     '#weight' => -3,
   );
   $form['content']['images']['image_height'] = array(
@@ -434,10 +495,10 @@ function ddblock_block_configure($delta) {
     '#options' => $options,
     '#multiple' => FALSE,
     '#required' => TRUE,
-    '#description' => t("The transition effect between content."),
+    '#description' => t("The transition effect between content. Multiple effects can be set in the Custom jQuery Cycle Plugin Settings."),
   );
 
-  $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000));
+  $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000));
 
   $form['block_settings']['settings']['speed'] = array(
     '#type' => 'select',
@@ -448,7 +509,7 @@ function ddblock_block_configure($delta) {
     '#description' => t("Speed of the transitions (1000 = 1 second, 0 = direct)."),
   );
 
-  $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000));
+  $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000, 30000));
   $form['block_settings']['settings']['timeout'] = array(
     '#type' => 'select',
     '#title' => t('Timeout'),
@@ -551,23 +612,23 @@ function ddblock_block_configure($delta) {
     $collapsed = TRUE;
   }
 
-  $form['custom'] = array(
+  $form['block_settings']['settings']['custom'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
     '#collapsed' => $collapsed,
-    '#title' => t('Custom Settings'),
+    '#title' => t('Custom jQuery Cycle Plugin Settings'),
     '#weight' => 1,
-    '#description' => t('If you use custom options, the other settings are not used.'),
+    '#description' => t('If you use custom jQuery options, they will override your other settings.'),
   );
 
-  $form['custom']['setting'] = array(
+  $form['block_settings']['settings']['custom']['custom_jquery'] = array(
     '#type' => 'textarea',
     '#title' => t('Custom Options'),
     '#default_value' => $custom_jquery,
     '#cols' => 60,
     '#rows' => 10,
     '#required' => FALSE,
-    '#description' => t('Custom options for the cycle plug-in.'),
+    '#description' => t('Use valid JSON syntax, with double quotes for key/and string value pairs.<br />The total script needs to be enclosed in curly brackets.<br />No comma allowed after the last statement like in an array.<br />e.g.<br />{"fx":"fade",<br />"startingSlide":2,<br />"autostop":1}'),
   );
 
   $form['#redirect'] = 'admin/settings/ddblock/list';
@@ -638,7 +699,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
   $module = arg(4);
   $delta = arg(5);
 
-  if ((isset($delta))
+  if ((isset($delta) && ($module == 'ddblock'))
     && (user_access('administer dynamic display blocks'))
     && (user_access('administer blocks'))
     && ($form_id == 'block_admin_configure')) {
@@ -658,17 +719,26 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
     }
     if ($block_enabled) {
 
+      // get module path to dynamic display block module
+      $ddblock_path = drupal_get_path('module', 'ddblock');
+      // add ddblock js file
+      drupal_add_js($ddblock_path .'/js/ddblock.admin.js', 'module');
+      drupal_add_js($ddblock_path .'/js/jquery.selectboxes.js', 'module');
+
       // get settings.
       $configuration_settings = ddblock_get_configuration_settings($module, $delta);
 
       $advanced =_ddblock_get_variable($configuration_settings['advanced'], 0);
-      $container = _ddblock_get_variable($configuration_settings['container'], 'img');
+      $container = _ddblock_get_variable($configuration_settings['container'], 'div.slide');
       $css = _ddblock_get_variable($configuration_settings['css'], 'none');
       $custom_jquery = _ddblock_get_variable($configuration_settings['custom_jquery'], '');
       $fx = _ddblock_get_variable($configuration_settings['fx'], "fade");
       $height = _ddblock_get_variable($configuration_settings['height'], 195);
       $image_height = _ddblock_get_variable($configuration_settings['image_height'], 195);
       $image_width = _ddblock_get_variable($configuration_settings['image_width'], 195);
+      $imgcache_toggle = _ddblock_get_variable($configuration_settings['imgcache_toggle'], 0);
+      $imgcache_slide = _ddblock_get_variable($configuration_settings['imgcache_slide'], '<none>');
+      $imgcache_pager_item = _ddblock_get_variable($configuration_settings['imgcache_pager_item'], '<none>');
       $next = _ddblock_get_variable($configuration_settings['next'], 1);
       $order = _ddblock_get_variable($configuration_settings['order'], 'random');
       $output = _ddblock_get_variable($configuration_settings['output'], 'view_content');
@@ -684,7 +754,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         $pager_height = _ddblock_get_variable($configuration_settings['pager_height'], 63);
         $pager_width = _ddblock_get_variable($configuration_settings['pager_width'], 195);
       }
-      $pager_container = _ddblock_get_variable($configuration_settings['pager_container'], 'pager-item');
+      $pager_container = _ddblock_get_variable($configuration_settings['pager_container'], '.custom-pager-item');
       $pager_position = _ddblock_get_variable($configuration_settings['pager_position'], 'top');
       $pause = _ddblock_get_variable($configuration_settings['pause'], 1);
       $slide_text = _ddblock_get_variable($configuration_settings['slide_text'], 0);
@@ -703,6 +773,15 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       $widget = _ddblock_get_variable($configuration_settings['widget'], 'default');
       $width = _ddblock_get_variable($configuration_settings['width'], 195);
 
+      // set pager variable for javascript  
+        $settings['ddblockCustomTemplate'] = array(
+        'pager' => $pager,
+        'pagerPosition' => $pager_position,
+      );
+
+      drupal_add_js($settings, 'setting');
+
+      
       // hide fields when using advanced settings
       $extra = (!empty($advanced)) ? ' style="display:none"' : '';
 
@@ -801,13 +880,67 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#weight' => 1,
       );
 
+      // if image cache module exist make it possible to use image cache presets
+      if ((module_exists('imagecache')) and (imagecache_presets())) {
+        $imgcache_options = array('<none>' => '<none>');
+    	  // get imagecache presets using imagecache function
+        foreach (imagecache_presets() as $preset) {
+          $name = $preset['presetname'];
+          $imgcache_options[$name] = $name;
+        }
+        $imgcache_slide_desc = t("Imagecache preset to use for slide image");
+        $imgcache_pager_item_desc = t("Imagecache preset to use for pager-item image. Only for themes that use an image in the pager");
+
+       // Image cache toggle
+        $form['block_settings']['imgcache_toggle'] = array(
+          '#type' => 'checkbox',
+          '#title' => t('Use imagecache presets'),
+          '#default_value' => $imgcache_toggle,
+          '#required' => FALSE,
+          '#description' => t("Use imagecache presets for images"),
+          '#weight' => -5,
+        );
+
+        // Image cache settings.
+        $form['block_settings']['imgcache'] = array(
+          '#type' => 'fieldset',
+          '#collapsible' => TRUE,
+          '#title' => t('Image cache preset settings'),
+          '#prefix' => '<div id="ddblock-imgcache-settings-wrapper"'. $extra .'>',
+          '#suffix' => '</div>',
+          '#weight' => -4,
+        );
+
+        $form['block_settings']['imgcache']['imgcache_slide'] = array(
+          '#type' => 'select',
+          '#title' => t('Imagecache slide image'),
+          '#default_value' => $imgcache_slide,
+          '#options' => $imgcache_options,
+          '#multiple' => FALSE,
+          '#required' => FALSE,
+          '#description' => $imgcache_slide_desc,
+          '#weight' => 1,
+        );
+
+        $form['block_settings']['imgcache']['imgcache_pager_item'] = array(
+          '#type' => 'select',
+          '#title' => t('Imagecache pager-item image'),
+          '#default_value' => $imgcache_pager_item,
+          '#options' => $imgcache_options,
+          '#multiple' => FALSE,
+          '#required' => FALSE,
+          '#description' => $imgcache_pager_item_desc,
+          '#weight' => 2,
+        );
+      }
+
       // content container settings.
       $form['block_settings']['content_container'] = array(
         '#type' => 'fieldset',
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
         '#title' => t('Content container settings'),
-        '#weight' => -4,
+        '#weight' => -3,
       );
 
       $form['block_settings']['content_container']['container'] = array(
@@ -883,7 +1016,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       '#options' => $options,
       '#multiple' => FALSE,
       '#required' => TRUE,
-      '#description' => t("The transition effect between content."),
+      '#description' => t("The transition effect between content. Multiple effects can be set in the Custom jQuery Cycle Plugin Settings."),
       );
 
       $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000));
@@ -909,7 +1042,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       $form['block_settings']['settings']['order'] = array(
       '#type' => 'select',
       '#title' => t('Sort Order'),
-      '#default_value' => $random,
+      '#default_value' => $order,
       '#options' => array('random' => t('Random'), 'asc' => t('Ascending'), 'desc' => t('Descending')),
       '#multiple' => FALSE,
       '#required' => TRUE,
@@ -951,7 +1084,6 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#title' => t('Pager settings'),
       );
 
-
       $options = array(
       'number-pager' => t('Number pager'),
       'prev-next-pager' => t('Prev next pager'),
@@ -972,7 +1104,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#title' => t('Pager container'),
         '#default_value' => $pager_container,
         '#required' => FALSE,
-        '#description' => t("Container of a pager-item, eg. CSS selector li.<br />This can be any CSS selector containing a pager-item. e.g div.custom-pager-item"),
+        '#description' => t("Container of a pager-item, eg. CSS selector li.<br />This can be any CSS selector containing a pager-item. e.g .custom-pager-item"),
       );
 
       $form['block_settings']['settings']['pager_settings']['pager_height'] = array(
@@ -1052,7 +1184,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       '#cols' => 60,
       '#rows' => 10,
       '#required' => FALSE,
-      '#description' => t('Use valid JSON syntax, with double quotes for key/value pairs.<br />e.g.<br />{"startingSlide":"2",<br />"autostop":"1"}'),
+      '#description' => t('Use valid JSON syntax, with double quotes for key/and string value pairs.<br />The total script needs to be enclosed in curly brackets.<br />No comma allowed after the last statement like in an array.<br />e.g.<br />{"fx":"fade",<br />"startingSlide":2,<br />"autostop":1}'),
       );
 
       //show fields when using advanced settings
@@ -1216,7 +1348,14 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
   // To Do
   // Get settings per widget
   $advanced =_ddblock_get_variable($configuration_settings['advanced'], 0);
-  $container = _ddblock_get_variable($configuration_settings['container'], 'img');
+  if ($advanced) {
+    $container = _ddblock_get_variable($configuration_settings['container'], 'div.slide');
+    $pager_container = _ddblock_get_variable($configuration_settings['pager_container'], 'custom-pager-item');
+  }
+  else {
+    $container = _ddblock_get_variable($configuration_settings['container'], 'img');
+    $pager_container = _ddblock_get_variable($configuration_settings['pager_container'], 'pager-item');
+  }
   $content_type = _ddblock_get_variable($configuration_settings['content_type'], 'none');
   $css = _ddblock_get_variable($configuration_settings['css'], 'none');
   $custom_jquery = _ddblock_get_variable($configuration_settings['custom_jquery'], '');
@@ -1224,6 +1363,9 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
   $height = _ddblock_get_variable($configuration_settings['height'], 195);
   $image_height = _ddblock_get_variable($configuration_settings['image_height'], 183);
   $image_width = _ddblock_get_variable($configuration_settings['image_width'], 183);
+  $imgcache_toggle = _ddblock_get_variable($configuration_settings['imgcache_toggle'], 0);
+  $imgcache_slide = _ddblock_get_variable($configuration_settings['imgcache_slide'], '<none>');
+  $imgcache_pager_item = _ddblock_get_variable($configuration_settings['imgcache_pager_item'], '<none>');
   $image_container_height = $image_height+12;
   $image_container_width = $image_width+12;
   $input_type = _ddblock_get_variable($configuration_settings['input_type'], 'images');
@@ -1252,7 +1394,6 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
     $pager_height = _ddblock_get_variable($configuration_settings['pager_height'], 63);
     $pager_width = _ddblock_get_variable($configuration_settings['pager_width'], 195);
   }
-  $pager_container = _ddblock_get_variable($configuration_settings['pager_container'], 'pager-item');
   $pager_position = _ddblock_get_variable($configuration_settings['pager_position'], 'top');
   $slide_text = _ddblock_get_variable($configuration_settings['slide_text'], 0);
   $slide_text_after_effect = _ddblock_get_variable($configuration_settings['slide_text_after_effect'], 'fadeIn');
@@ -1315,8 +1456,8 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
     'width' => $width,
   );
 
+  ddblock_init_js_css();
   drupal_add_js($settings, 'setting');
-
 
   // get module path to dynamic display block module
   $ddblock_path = drupal_get_path('module', 'ddblock');
@@ -1337,20 +1478,34 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
       if ($module_original == 'views') {
         if ($output == 'view_fields' ) {
           $output_type = 'view_fields';
+          // block.module has a delta length limit of 32, but deltas in the views module can
+          // be longer because view names can be 32 and display IDs can also be 32.
+          // So for very long deltas, md5 hashes are used.
           if (strlen($delta_original) == 32) {
             $hashes = variable_get('views_block_hashes', array());
             if (!empty($hashes[$delta_original])) {
-              $delta = $hashes[$delta_original];
+              $delta_original = $hashes[$delta_original];
             }
           }
-
           list($name, $display_id) = explode('-', $delta_original);
           // Load the view
           if ($view = views_get_view($name)) {
             if ($view->access($display_id)) {
-              $view->preview();
+              $view->preview($display_id);
               $content=$view->result;
+              switch ($order) {
+               case 'random':
+                 shuffle($content);
+                 break;
+               case 'asc' :
+                 asort($content);
+                 break;
+               case 'desc':
+                 rsort($content);
+                 break;
+              }
             }
+            $view->destroy();
           }
         }
         else {
@@ -1372,9 +1527,11 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
     else {
       // get content from image folderimages.
       $output_type = 'images';
-      $imagepath = check_plain(_ddblock_get_variable($configuration_settings['folder'],
-                               'files/images/ddblock'))
-      ;
+      $imagepath = check_plain(_ddblock_get_variable(
+                                 file_directory_path() . '/' .$configuration_settings['folder'],
+                                 file_directory_path()
+                              ));
+
       $max_image = _ddblock_get_variable($configuration_settings['max_image'], 2);
 
       $content = _ddblock_get_image_array($imagepath, $order, $max_image);
@@ -1387,6 +1544,8 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
       'delta' => $delta,
       'image_height' => $image_height,
       'image_width' => $image_width,
+      'imgcache_slide' => $imgcache_slide,
+      'imgcache_pager_item' => $imgcache_pager_item,
       'output_type' => $output_type,
       'pager' => $pager,
       'pager_height' => $pager_height,
@@ -1427,32 +1586,6 @@ function ddblock_theme() {
         'content' => NULL,
       ),
     ),
-    'ddblock_cycle_block_images' => array(
-      'template' => 'ddblock-cycle-block-images',
-      'arguments' => array(
-        'script' => NULL,
-        'image_height' => NULL,
-        'image_width' => NULL,
-        'pager' => NULL,
-        'pager_height' => NULL,
-        'pager_width' => NULL,
-        'delta' => NULL,
-        'origin' => NULL,
-        'content_array' => NULL,
-      ),
-    ),
-    'ddblock_cycle_block_content_array' => array(
-      'template' => 'ddblock-cycle-block-content-array',
-      'arguments' => array(
-        'script' => NULL,
-        'pager' => NULL,
-        'pager_height' => NULL,
-        'pager_width' => NULL,
-        'delta' => NULL,
-        'origin' => NULL,
-        'content_array' => NULL,
-      ),
-    ),
     'ddblock_add_instance' => array(
       'arguments' => array(
         'add_block_form' => NULL,
@@ -1476,6 +1609,8 @@ function template_preprocess_ddblock_cycle_block_content(&$vars) {
   $vars['delta'] = $vars['settings']['delta'];
   $vars['image_height'] = $vars['settings']['image_height'];
   $vars['image_width'] = $vars['settings']['image_width'];
+  $vars['imgcache_slide'] = $vars['settings']['imgcache_slide'];
+  $vars['imgcache_pager_item'] = $vars['settings']['imgcache_pager_item'];
   $vars['output_type'] = $vars['settings']['output_type'];
   $vars['pager'] = $vars['settings']['pager'];
   $vars['pager_height'] = $vars['settings']['pager_height'];
@@ -1501,6 +1636,7 @@ function template_preprocess_ddblock_cycle_block_content(&$vars) {
   $pager_settings['pager_event'] = $vars['settings']['pager_event'];
   $pager_settings['pager_height'] = $vars['settings']['pager_height'];
   $pager_settings['pager_width'] = $vars['settings']['pager_width'];
+  $pager_settings['imgcache_pager_item'] = $vars['settings']['imgcache_pager_item'];
   $pager_settings['pager_position'] = $vars['settings']['pager_position'];
   $pager_settings['template'] = $vars['settings']['template'];
   $pager_settings['custom_template'] = $vars['settings']['custom_template'];
@@ -1543,6 +1679,7 @@ function template_preprocess_ddblock_cycle_pager_content(&$vars) {
   $vars['pager_position'] = $vars['pager_settings']['pager_position'];
   $vars['template'] = $vars['pager_settings']['template'];
   $vars['custom_template'] = $vars['pager_settings']['custom_template'];
+  $vars['imgcache_pager_item'] = $vars['pager_settings']['imgcache_pager_item'];
 
   // additional candidate template files
   if ($vars['template'] == 'custom') {
@@ -1600,6 +1737,11 @@ function ddblock_set_configuration_settings($origin, $delta, $edit) {
   $configuration_settings['height'] = (int) $edit['height'];
   $configuration_settings['image_height'] = (int) $edit['image_height'];
   $configuration_settings['image_width'] = (int) $edit['image_width'];
+  $configuration_settings['imgcache_toggle'] = (int) $edit['imgcache_toggle'];
+  if (!empty($configuration_settings['imgcache_toggle'])) {
+    $configuration_settings['imgcache_slide'] = $edit['imgcache_slide'];
+    $configuration_settings['imgcache_pager_item'] = $edit['imgcache_pager_item'];
+  }
   $configuration_settings['input_type'] = $edit['input_type'];
   $configuration_settings['max_image'] = (int) $edit['max_image'];
   $configuration_settings['next'] = (int) $edit['next'];
@@ -1731,6 +1873,7 @@ function _ddblock_get_image_array($imagepath, $order, $max_image) {
   $file_array = file_scan_directory($imagepath, $mask, $ignore, $callback = 0, $recurse = FALSE, $key = 'filename', $min_depth = 0, $depth = 0);
 
   $file_names = array();
+
   foreach ($file_array as $value) {
     $file_names[] = $value->filename;
   }
