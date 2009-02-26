@@ -53,7 +53,7 @@ Drupal.behaviors.ddblockShowHideAdvancedOptions = function(context) {
       $('#edit-output-wrapper option[value="view_content"]').show();
     }
     return true;
-  }).trigger('click').trigger('click')
+  }).trigger('change').trigger('change')
 };
 /**
  * Show/hide slide text settings sections on the ddblock instance settings page.

@@ -168,9 +168,11 @@ function ddblock_block($op='list', $delta=0, $edit = array()) {
       if (user_access('view dynamic display blocks')) {
         $block['subject'] = ddblock_subject($module, $delta);
         $block['content'] = ddblock_content($module, $delta);
-        return $block;
+        if (!empty($block['content'])) {
+          return $block;
+        }
       }
-      break;
+      return;
   }
 }
 
@@ -773,7 +775,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       $widget = _ddblock_get_variable($configuration_settings['widget'], 'default');
       $width = _ddblock_get_variable($configuration_settings['width'], 195);
 
-      // set pager variable for javascript  
+      // set pager variable for javascript
         $settings['ddblockCustomTemplate'] = array(
         'pager' => $pager,
         'pagerPosition' => $pager_position,
@@ -781,7 +783,6 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
 
       drupal_add_js($settings, 'setting');
 
-      
       // hide fields when using advanced settings
       $extra = (!empty($advanced)) ? ' style="display:none"' : '';
 
@@ -1493,16 +1494,18 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
             if ($view->access($display_id)) {
               $view->preview($display_id);
               $content=$view->result;
-              switch ($order) {
-               case 'random':
-                 shuffle($content);
-                 break;
-               case 'asc' :
-                 asort($content);
-                 break;
-               case 'desc':
-                 rsort($content);
-                 break;
+              if (!empty($content)) {
+                switch ($order) {
+                 case 'random':
+                   shuffle($content);
+                   break;
+                 case 'asc' :
+                   asort($content);
+                   break;
+                 case 'desc':
+                   rsort($content);
+                   break;
+                }
               }
             }
             $view->destroy();
@@ -1538,8 +1541,9 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
     }
   }
 
-  //use a settings array for template arguments which is more flexible
-  $settings = array(
+  if (!empty($content)) {
+    //use a settings array for template arguments which is more flexible
+    $settings = array(
       'css' => $css,
       'delta' => $delta,
       'image_height' => $image_height,
@@ -1564,6 +1568,10 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
     );
     //dsm($block_content);
     return $block_content;
+  }  
+  else {
+    return false;
+  }
 }
 
 // THEME FUNCTIONS.
