@@ -15,9 +15,9 @@ Drupal.behaviors.ddblockImg = function (context) {
         $('#ddblock-'+ ddblockSettings.block +' .ddblock-container img:not(.ddblock-processed)', context)
         .css('height',ddblockSettings.imageHeight + 'px')
         .css('width',ddblockSettings.imageWidth + 'px')
-        .css('padding', '2px')
-        .css('border', '1px solid #ddd')
-        .css('background-color', '#eee')
+//       .css('padding', '2px')
+//       .css('border', '1px solid #ddd')
+//       .css('background-color', '#eee')
         .addClass('ddblock-processed');
       }
     }
@@ -70,19 +70,21 @@ Drupal.behaviors.ddblockCycle = function (context) {
   // slideUp - Hide all matched elements by adjusting their height and firing an optional callback after completion.
   // hide - Hide all matched elements using a graceful animation and firing an optional callback after completion.
   function onBefore(curr, next, opts, fwd) {
-    if (opts.slideTextEffectBeforeSpeed == 0) {
-      opts.slideTextEffectBeforeSpeed = 1;
-    };
-    switch (opts.slideTextEffectBefore) {
-    case "fadeOut":
-      $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).fadeOut(opts.slideTextEffectBeforeSpeed);
-    break;
-    case "slideUp":
-      $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).slideUp(opts.slideTextEffectBeforeSpeed);
-    break;
-    default:
-      $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).hide(opts.slideTextEffectBeforeSpeed);
-    }
+    if (opts.slideTextjQuery == 1){
+      if (opts.slideTextEffectBeforeSpeed == 0) {
+        opts.slideTextEffectBeforeSpeed = 1;
+      };
+      switch (opts.slideTextEffectBefore) {
+      case "fadeOut":
+        $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).fadeOut(opts.slideTextEffectBeforeSpeed);
+      break;
+      case "slideUp":
+        $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).slideUp(opts.slideTextEffectBeforeSpeed);
+      break;
+      default:
+        $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).hide(opts.slideTextEffectBeforeSpeed);
+      }
+    }  
   }
 
   // cycle Plugin onAfter function to add functionality after the next slide shows up
@@ -91,27 +93,45 @@ Drupal.behaviors.ddblockCycle = function (context) {
   // slideDown - Reveal all matched elements by adjusting their height and firing an optional callback after completion.
   // show - Show all matched elements using a graceful animation and firing an optional callback after completion.
   function onAfter(curr, next, opts, fwd) {
-    if (opts.slideTextEffectAfterSpeed == 0) {
-      opts.slideTextEffectAfterSpeed = 1;
-    };
-    switch (opts.slideTextEffectAfter) {
-    case "fadeIn":
-     $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-'  + opts.slideTextPosition).fadeIn(opts.slideTextEffectAfterSpeed);
-    break;
-    case 'slideDown':
-     $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).slideDown(opts.slideTextEffectAfterSpeed);
-    break;
-    default:
-     $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).show(opts.slideTextEffectAfterSpeed);
+    if (opts.slideTextjQuery == 1){
+      if (opts.slideTextEffectAfterSpeed == 0) {
+        opts.slideTextEffectAfterSpeed = 1;
+      };
+      switch (opts.slideTextEffectAfter) {
+      case "fadeIn":
+       $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-'  + opts.slideTextPosition).fadeIn(opts.slideTextEffectAfterSpeed);
+      break;
+      case 'slideDown':
+       $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).slideDown(opts.slideTextEffectAfterSpeed);
+      break;
+      default:
+       $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).show(opts.slideTextEffectAfterSpeed);
+      }
+    }  
+    
+    //when scrollable pager is used set active pager-item to current slide
+    if (opts.pager1 == 'scrollable-pager' ){
+      var myScrollable = $('#ddblock-' + block + ' ' + 'div.ddblock-scrollable-pager').scrollable();
+      myScrollable.click(opts.currSlide);
     }
 
-    // show pager count (0 of x)
-    $("#ddblock-"+ opts.ddblocknr + ' ' + '#count2').html((opts.currSlide + 1) + " of " + opts.slideCount);
 
-    // Only show prev if previous slide exist - Only show next if next slide exist
+    // show pager count (0 of x)
+    $("#ddblock-"+ opts.ddblocknr + ' ' + 'a.count').html((opts.currSlide + 1) + " of " + opts.slideCount);
+
+    // For prev/next pager in the pager. Only show prev if previous slide exist - Only show next if next slide exist
     var index = $(this).parent().children().index(this);
-    $("#ddblock-"+ opts.ddblocknr + ' ' + '#prev2')[index == 0 ? 'hide' : 'show']();
-    $("#ddblock-"+ opts.ddblocknr + ' ' + '#next2')[index == opts.slideCount - 1 ? 'hide' : 'show']();
+    if (opts.pager2PagerHide == 1) {
+      $("#ddblock-"+ opts.ddblocknr + ' li.pager-prev ' + 'a.prev')[index == 0 ? 'hide' : 'show']();
+      $("#ddblock-"+ opts.ddblocknr + ' li.pager-next ' + 'a.next')[index == opts.slideCount - 1 ? 'hide' : 'show']();
+    }
+
+    // For prev/next pager in the slides. Only show prev if previous slide exist - Only show next if next slide exist
+    var index = $(this).parent().children().index(this);
+    if (opts.pager2SlideHide == 1) {
+      $("#ddblock-"+ opts.ddblocknr + ' div.prev-container ' + 'a.prev')[index == 0 ? 'hide' : 'show']();
+      $("#ddblock-"+ opts.ddblocknr + ' div.next-container ' + 'a.next')[index == opts.slideCount - 1 ? 'hide' : 'show']();
+    }
   }
 
   i=0;
@@ -124,7 +144,7 @@ Drupal.behaviors.ddblockCycle = function (context) {
     var block = ddblockSettings.block;
     var custom = ddblockSettings.custom;
     var pager = ddblockSettings.pager;
-    var pagerEvent = ddblockSettings.pagerEvent;
+    var pager2 = ddblockSettings.pager2;
     var contentContainer = ddblockSettings.contentContainer;
     var pagerContainer = ddblockSettings.pagerContainer;
 
@@ -138,39 +158,77 @@ Drupal.behaviors.ddblockCycle = function (context) {
       options.delay = i * -1000;
 
       // set pager. You can have only one pager per block this way
-      if (pager == 'image-pager' || pager == 'number-pager' || pager == 'custom-pager') {
-        // number pager, image pager and custom pager
+      if (pager == 'image-pager' || pager == 'number-pager' || pager == 'custom-pager' || pager == 'scrollable-pager') {
+        // number pager, image pager , custom pager and scrollable pager
         options.pager = "#ddblock-" + pager + "-" + block;
+        if (pager == 'number-pager') {
+          options.pagerAnchorBuilder = function(idx, slide) {
+            // return selector string for existing anchor
+            return "#ddblock-" + pager + "-" + block + " li.number-pager-item:eq(" + idx + ") a.pager-link";
+          }
+        }
         if (pager == 'image-pager') {
           options.pagerAnchorBuilder = function(idx, slide) {
             // return selector string for existing anchor
-            return "#ddblock-" + pager + "-" + block + " li:eq(" + idx + ") a";
+            return "#ddblock-" + pager + "-" + block + " li.image-pager-item:eq(" + idx + ") a.pager-link";
           }
         }
         if (pager == 'custom-pager') {
           options.pagerAnchorBuilder = function(idx, slide) {
             // return selector string for existing anchor
-            return "#ddblock-" + pager + "-" + block + " " + pagerContainer + ":eq(" + idx + ") a.pager-link";
+            return "#ddblock-" + pager + "-" + block + " " + pagerContainer + ".custom-pager-item:eq(" + idx + ") a.pager-link";
           }
         }
-      }
-      if (pager == 'prev-next-pager') {
-        options.prev = "#ddblock-"+ block + " #prev2";
-        options.next = "#ddblock-"+ block + " #next2";
-      } else {
-         //set next
-        if (ddblockSettings.next) {
-          options.next = "#ddblock-"+ block + ' ' + contentContainer;
+        if (pager == 'scrollable-pager') {
+          options.pagerAnchorBuilder = function(idx, slide) {
+            // return selector string for existing anchor
+            return "#ddblock-" + pager + "-" + block + " " 
+            + pagerContainer + ":eq(" + idx + ") a.pager-link";
+          }
         }
+
       }
 
       //set event which drives the pager navigation
-      options.pagerEvent = pagerEvent;
-      if (pagerEvent == 'mouseover' || pagerEvent == 'click') {
-        options.fastOnEvent = true;
-        options.pauseOnPagerHover = true;
+      options.pagerEvent = ddblockSettings.pagerEvent;
+	    options.prevNextEvent = ddblockSettings.pager2Event;
+
+      // If pager fast set use fastOnEvent pager
+      options.fastOnEvent = (ddblockSettings.pagerFast == 1) ? 1 : 0;
+          
+      // pause slideshow on pager hover
+      options.pauseOnPagerHover = (ddblockSettings.pagerPause == 1) ? 1 : 0;
+
+      // disable click if pager is mouseover
+      if (ddblockSettings.pagerEvent == 'mouseover') {
+          $("#ddblock-" + pager + "-" + ddblockSettings.block + " a.pager-link").click(function() {
+            return false;
+          });
+      }
+       
+      // disable click if prev/next pager is mouseover
+      if (ddblockSettings.pager2Event == 'mouseover') {
+          $("#ddblock-"+ ddblockSettings.block + ' a.prev').click(function() {
+            return false;
+          });
+          $("#ddblock-"+ ddblockSettings.block + ' a.next').click(function() {
+            return false;
+          });
       }
 
+      //add prev next pager
+      //alert(pager2);
+      if (pager2 == 1) {
+        options.prev = "#ddblock-"+ ddblockSettings.block + ' a.prev';
+        options.next = "#ddblock-"+ ddblockSettings.block + ' a.next';
+      } 
+      else {
+        //set next
+        if (ddblockSettings.next) {
+            options.next = "#ddblock-"+ ddblockSettings.block + ' ' + contentContainer;
+        }
+      }
+      
       //set expression for selecting slides (if something other than all children is required)
       options.slideExpr = contentContainer;
 
@@ -200,10 +258,36 @@ Drupal.behaviors.ddblockCycle = function (context) {
         jQuery.extend(true, options, custom2);
       }
 
+      // redefine Cycle's updateActivePagerLink function
+      $.fn.cycle.updateActivePagerLink = function(pager, currSlide) {
+        $(pager)
+          .find('a.pager-link')
+            .removeClass('activeSlide')
+            .filter('a.pager-link:eq('+currSlide+')')
+            .addClass('activeSlide');
+        $(pager)
+          .find('.custom-pager-item')
+          .removeClass('active-pager-item')
+          .filter('.custom-pager-item:eq('+currSlide+')')
+          .addClass('active-pager-item');
+        $(pager)
+          .find('.scrollable-pager-item')
+          .removeClass('active-pager-item')
+          .filter('.scrollable-pager-item:eq('+currSlide+')')
+          .addClass('active-pager-item');
+      };
+
+      options.pager2PagerHide = ddblockSettings.pager2PagerHide;
+      options.pager2SlideHide = ddblockSettings.pager2SlideHide;
+      options.ddblocknr = block;
+      options.before = onBefore;
+      options.after = onAfter;
+
+      
       // simple block
       if (ddblockSettings.setDimensions == 'none') {
         if ((ddblockSettings.height > 0) && (ddblockSettings.width > 0 )) {
-          $('#ddblock-'+ block)
+          var $container = $('#ddblock-'+ block+ ' .ddblock-container ' + contentContainer).parent()
           .cycle(options)
           .css('height',ddblockSettings.height + 'px')
           .css('width',ddblockSettings.width + 'px')
@@ -212,7 +296,7 @@ Drupal.behaviors.ddblockCycle = function (context) {
           .addClass('ddblock-processed');
         }
         else {
-          $('#ddblock-'+ block)
+          var $container = $('#ddblock-'+ block + ' .ddblock-container ' + contentContainer).parent()
           .cycle(options)
           .css('overflow', ddblockSettings.overflow)
           .css('visibility', 'visible')
@@ -221,7 +305,7 @@ Drupal.behaviors.ddblockCycle = function (context) {
       }
       // advanced block
       else {
-        if (ddblockSettings.slideTextPosition) {
+        if (ddblockSettings.slideText == 1) {
           //set slidetext options
           options.slideTextContainer = ddblockSettings.slideTextContainer;
           options.slideTextPosition = ddblockSettings.slideTextPosition;
@@ -229,44 +313,52 @@ Drupal.behaviors.ddblockCycle = function (context) {
           options.slideTextEffectBeforeSpeed = ddblockSettings.slideTextEffectBeforeSpeed;
           options.slideTextEffectAfter = ddblockSettings.slideTextEffectAfter;
           options.slideTextEffectAfterSpeed = ddblockSettings.slideTextEffectAfterSpeed;
-          options.ddblocknr = block;
-          options.before = onBefore;
-          options.after = onAfter;
+          options.slideTextjQuery = ddblockSettings.slideTextjQuery;
         }
-
+ 
         options.pagerContainer = ddblockSettings.pagerContainer;
 
-        // redefine Cycle's updateActivePagerLink function
-        $.fn.cycle.updateActivePagerLink = function(pager, currSlide) {
-          if (pager.match("custom-pager") == "custom-pager") {
-            $(pager)
-            .find('a.pager-link')
-            .removeClass('activeSlide')
-            .filter('a.pager-link:eq('+currSlide+')')
-            .addClass('activeSlide');
-          }
-          else {
-            $(pager)
-            .find('a')
-            .removeClass('activeSlide')
-            .filter('a:eq('+currSlide+')')
-            .addClass('activeSlide');
-          }
-          $(pager)
-          .find('.custom-pager-item')
-          .removeClass('active-pager-item')
-          .filter('.custom-pager-item:eq('+currSlide+')')
-          .addClass('active-pager-item');
-        };
-
         //Use the parent of the slides as the parent container so the children function can be used for the second pager
-        var $container = $('#ddblock-' + block + ' ' + contentContainer).parent()
+        var $container = $('#ddblock-' + block + ' ' + contentContainer).parent();
+        $container
         .cycle(options)
         .css('visibility', 'visible')
         .addClass('ddblock-processed');
-      }
+        
+        if (pager == 'scrollable-pager') {
+          // create one scrollable element and return the API by enabling the "api" property
+          var myScrollable1 = $('#ddblock-' + block + ' ' + 'div.vsd-scrollable-pager').scrollable({ 
+            //enable api property
+            api:true,
+        
+            // number of items vissible in scrollable pager 
+            size: 5
+      
+          });
+    
+          //activate slide 1
+          myScrollable1.click(0);
+        }
+      }  
     }
     i++;
   }
 };
+
+/*        $('#ddblock-' + block + ' ' + 'a.pause').click(function() { 
+          $('#ddblock-' + block + ' ' + contentContainer).parent().cycle(2); 
+          return false;
+        }); 
+
+        $('#ddblock-' + block + ' ' + 'a.play').click(function() { 
+          $('#ddblock-' + block + ' ' + contentContainer).parent().cycle('resume', true);
+          return false;          
+        });
+ 
+        $container.hover(
+          function() { $('#ddblock-' + block + ' ' +'.controls').fadeIn(); },
+          function() { $('#ddblock-' + block + ' ' +'.controls').fadeOut(); }
+        );
+ */
+
 

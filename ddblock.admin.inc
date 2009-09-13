@@ -259,7 +259,7 @@ function ddblock_settings_form() {
    '#default_value' => variable_get('ddblock_node_type', array()),
    '#options' => $content_types,
    '#multiple' => TRUE,
-   '#required' => TRUE,
+   '#required' => FALSE,
   );
 
   // Fetch blocks directly from modules using block.module function.
@@ -284,7 +284,7 @@ function ddblock_settings_form() {
    '#default_value' => variable_get('ddblock_blocks', array()),
    '#options' => $options,
    '#multiple' => TRUE,
-   '#required' => TRUE,
+   '#required' => FALSE,
   );
 
   $form['#redirect'] = 'admin/settings/ddblock/list';

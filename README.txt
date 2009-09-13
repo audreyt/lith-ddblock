@@ -1,8 +1,11 @@
 // $Id$
 
-Note: This is version RC5 of the module. Please test and review the module and post
-your issues on the project page http://drupal.org/project/ddblock to help improve
-the module.
+Note: This is a development version after RC6 of the module for testing purpose only. 
+Don't use it to replace RC6. Please test and review the module and post your issues 
+in the issue queue of the module http://drupal.org/project/issues/ddblock 
+to test and improve the module, so we can release a new version. The module is tested
+by us and should work properly, although we are sure bugs can be found and there are a 
+lot of code improvements possible. 
 
 
 SUMMARY
@@ -41,9 +44,6 @@ You can see a demo of the module at http://ddblock.myalbums.biz/
 REQUIREMENTS
 ------------
 jQuery-update module.
-
-Note: Drupal 6.3 already has the jQuery 1.2.6., but still we prefer to install
-      jQuery update module for future versions of jQuery. (soon 1.3.x)
 
 See INSTALL.txt
 

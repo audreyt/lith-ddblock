@@ -1,7 +1,38 @@
 /*
  * Change Log for ddblock module
- * Copyright (c) 2008-2009 ppblaauw
+ * Author: ppblaauw
  */
+
+2009-sep-13
+Changed ddblock themes
+Add theme functionality functions to module
+Add posibility not to use slidetext from configuration page
+Add scrollable pager
+Made prev and next text of prev/next pager translatable
+Change prev/next pager and count from id to class
+Add pager next/previous options with other pagers
+
+Add pager_fast option to basic and advanced settings
+Add pager_pause option to basic and advanced settings
+Made pager with pager next/prev possible
+Disable click when pager is mouseover
+Set proceed to next image default to off
+Set sort order default to ascending
+Set speed to 500 by default
+Set timeout to 5000 by default
+Set advanced to 1 by default
+Set maximage default to 5
+Jquery Cycle plugin updated to version 2.72
+Add none and all effects
+Add debug info as a setting
+
+#389546 fixed size always 55x55px with image folder
+#391178 fixed pager setting goes always to top when chaging configurations
+#397018 fixed sort order of original content can not be used
+#412494 Add support to ignore files from a folder.
+#429138 fixed number pager doubles when part of page refreshed with AJAX
+#462066 fixed template variables conflict
+#491836 fixed blocks and content types being mandatory in settings page
 
 2009-feb-26
 Fixed advanced settings not shown on initial configuration page view

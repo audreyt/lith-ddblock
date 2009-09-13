@@ -24,9 +24,10 @@ For advanced options
 
 PRE-REQUISITES
 --------------
-* If you are upgrading from a previous version, please
+* Only use this developement version to test the module
+  Don't replace your RC6 version with this development version
 
-  - Delete the previous ddblock module directory
+  - Delete the previous ddblock module directory (development version)
   
   - Read notes about important changes that may affect your site or theme in
     CHANGELOG.txt.
@@ -34,7 +35,7 @@ PRE-REQUISITES
 
 UPGRADING
 ---------
-* RC5 uses new theme packages and preprocess functions. 
+* This dev relaese uses new theme packages and preprocess functions. 
 * To download and install the new themes see: 
   DDBLOCK THEMES INSTALLATION 
 * To download and install the new preprocess functions see: 
@@ -93,7 +94,7 @@ JQUERY EASING PLUG-IN INSTALLATION
 
 DDBLOCK THEMES INSTALLATION
 ---------------------------
-* Download the theme package (upright10-50.zip) from http://ddblock.myalbums.biz/node/17
+* Download the theme package (dev-upright10-60-vx-x.zip) from http://ddblock.myalbums.biz/download
 
 * Extract the zip file to a temporary directory
 
@@ -102,7 +103,7 @@ DDBLOCK THEMES INSTALLATION
 
 EXPORT PACKAGE
 --------------  
-* Download the export package (Export_files.zip) from http://ddblock.myalbums.biz/node/17
+* Download the export package (dev-Export-files-vx-x.zip) from http://ddblock.myalbums.biz/download
   
 DDBLOCK EXAMPLE CONTENT TYPE AND VIEW 
 -------------------------------------

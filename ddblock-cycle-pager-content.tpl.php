@@ -6,12 +6,12 @@
  * Default theme implementation to display a dynamic display blocks from a dynamic display block instance.
  *
  * Available variables:
- * - $delta: Block number of the block.
- * - $pager: Add a pager to the dynamic display block.
- * - $pager_height: Height of the container of the pager.
- * - $pager_width: Width of the container of the pager.
- * - $pager_position: position of the slider (top | bottom) 
-  * - $content: themed content
+ * - $ddblock_delta: Block number of the block.
+ * - $ddblock_pager: Add a pager to the dynamic display block.
+ * - $ddblock_pager_height: Height of the container of the pager.
+ * - $ddblock_pager_width: Width of the container of the pager.
+ * - $ddblock_pager_position: position of the slider (top | bottom) 
+  * - $ddblock_content: themed content
  *
  * notes: don't change the ID names, they are used by the jQuery script.
  */
@@ -21,17 +21,17 @@ $number_of_items_per_row=3;
 
 <?php //custom pager. ?>
  
-<?php if ($pager == 'custom-pager'): ?>
- <?php if ($pager_position == 'bottom' || $pager_position == 'both'): ?>
+<?php if ($ddblock_pager == 'custom-pager'): ?>
+ <?php if ($ddblock_pager_position == 'bottom' || $ddblock_pager_position == 'both'): ?>
    <div class="spacer-horizontal"><b></b></div>
  <?php endif; ?>
- <div id="ddblock-pager-<?php print $delta ?>" class="<?php print $pager ?>" class="clear-block border">
-  <div  class="<?php print $pager ?>-inner" class="clear-block border">
-   <?php if ($pager_items): ?>
+ <div id="ddblock-pager-<?php print $ddblock_delta ?>" class="<?php print $ddblock_pager ?>" class="clear-block border">
+  <div  class="<?php print $ddblock_pager ?>-inner" class="clear-block border">
+   <?php if ($ddblock_content): ?>
     <?php $item_counter=0; ?>
-    <?php foreach ($pager_items as $pager_item): ?>
-     <div class="<?php print $pager ?>-item <?php print $pager ?>-item-<?php print $item_counter ?>">
-      <div class="<?php print $pager ?>-item-inner"> 
+    <?php foreach ($ddblock_content as $pager_item): ?>
+     <div class="<?php print $ddblock_pager ?>-item <?php print $ddblock_pager ?>-item-<?php print $item_counter ?>">
+      <div class="<?php print $ddblock_pager ?>-item-inner"> 
        <a href="#" title="navigate to topic"><?php print $pager_item['image']; ?><?php print $pager_item['text']; ?></a>
       </div>
      </div>
@@ -44,7 +44,7 @@ $number_of_items_per_row=3;
    <?php endif; ?>
   </div> <!-- pager-inner-->
  </div>  <!-- pager-->
- <?php if ($pager_position == 'top' || $pager_position == 'both'): ?>
+ <?php if ($ddblock_pager_position == 'top' || $ddblock_pager_position == 'both'): ?>
    <div class="spacer-horizontal"><b></b></div>
  <?php endif; ?>
 <?php endif; ?> 
