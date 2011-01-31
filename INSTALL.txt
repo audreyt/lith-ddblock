@@ -4,67 +4,35 @@ REQUIREMENTS
 ------------
 * Javascript-enabled web browser
 
-* jQuery update module, <http://drupal.org/project/jquery update>
+Optional
 
-* jQuery easing plug-in (optional) <http://plugins.jquery.com/files/jquery.easing.1.1.1.js>
+* jQuery easing plug-in (optional) <http://gsgd.co.uk/sandbox/jquery/easing/>
   This jQuery plug-in is not included in the Drupal distribution because it is not licensed
   under GPL which is required by Drupal.
 
-* Header image module (optional) <http://drupal.org/project/headerimage>
-  Other block modules (optional)
-  
 For advanced options
-  
-* CCK module (optional) <http://drupal.org/project/cck>
-* ImageApi (optional) <http://drupal.org/project/imageapi>
-* FileField (optional) <http://drupal.org/project/filefield>
-* ImageField (optional) <http://drupal.org/project/imagefield>
 
 * Views module (optional) <http://drupal.org/project/views>
 
 PRE-REQUISITES
 --------------
-* Only use this developement version to test the module
-  Don't replace your RC6 version with this development version
+* If you are upgrading from a previous version, please
 
-  - Delete the previous ddblock module directory (development version)
-  
+  - Delete the previous ddblock module directory
+
   - Read notes about important changes that may affect your site or theme in
     CHANGELOG.txt.
 
-
 UPGRADING
 ---------
-* This dev relaese uses new theme packages and preprocess functions. 
-* To download and install the new themes see: 
-  DDBLOCK THEMES INSTALLATION 
-* To download and install the new preprocess functions see: 
-  DDBLOCK PREPROCESS FUNCTIONS INSTALLATION
+* ddblock for drupal 7 uses new theme packages.
+* ddblock for drupal 7 does not use preprocess functions in the theme anymore
+  you need to delete existing preprocess functions from the template.php file.
+* To download and install the new themes see:
+  DDBLOCK THEMES INSTALLATION
 
-  
 INSTALLATION
 ------------
-* The dynamic display block depends on the jQuery-update module.
-* Please install this module first.
-
-
-JQUERY UPDATE INSTALLATION
---------------------------
-Note: Drupal 6.3 already has the jQuery 1.2.6., but still we prefer to install
-  jQuery update module for future versions of jQuery.
-
-* jQuery Update module upgrades Drupal's stable version of jQuery in order to
-  support the most current jQuery version available.
-
-* Download, extract and copy the jquery_update folder to your sites/all/modules
-   directory.
-
-* Enable the module at Administer >> Site building >> Modules.
-
-* Set the jQuery compression type at Administer >> Site configuration >> jQuery Update.
-
-For more information, see README.txt of the jQuery Update module.
-
 
 DYNAMIC DISPLAY BLOCK INSTALLATION
 ----------------------------------
@@ -77,71 +45,43 @@ DYNAMIC DISPLAY BLOCK INSTALLATION
 
 For more information about configuration, see README.txt of the ddblock.
 
-JQUERY EASING PLUG-IN INSTALLATION
+OPTIONAL JQUERY EASING PLUG-IN INSTALLATION
 ----------------------------------
-* Download version 1.1.1 at http://plugins.jquery.com/project/Easing.
+* Download version 1.3 at http://gsgd.co.uk/sandbox/jquery/easing/.
 
-* Copy jquery.easing.1.1.1.js to sites/all/modules/ddblock.
-
-* Add 
-  //add easing plugin
-  drupal_add_js($ddblock_path .'/js/jquery.easing.1.1.1.js', 'module');
-
-  to the ddblock.module file just below line 26:
-
-  //add jcycle plugin
-  drupal_add_js($ddblock_path .'/js/jquery.cycle.all.min.js', 'module');
+* Copy jquery.easing.1.3.js to sites/all/modules/ddblock.
 
 DDBLOCK THEMES INSTALLATION
 ---------------------------
-* Download the theme package (dev-upright10-60-vx-x.zip) from http://ddblock.myalbums.biz/download
+* Download the theme package (upright10p-60p.rar) from http://ddblock.myalbums.biz/download
+  Make sure you download the version for Drupal 7
 
-* Extract the zip file to a temporary directory
+* Extract the rar file to a temporary directory
 
-* Copy the custom directory with all subdirectories to the theme directory of the 
+* Copy the custom directory with all subdirectories to the theme directory of the
   theme you use. (which is probably at sites/all/themes/[YOUR_THEME_NAME])
 
-EXPORT PACKAGE
---------------  
-* Download the export package (dev-Export-files-vx-x.zip) from http://ddblock.myalbums.biz/download
-  
-DDBLOCK EXAMPLE CONTENT TYPE AND VIEW 
+DDBLOCK EXAMPLE CONTENT TYPE AND VIEW
 -------------------------------------
-You can use the News item content type export to import the News item content type 
-into your Drupal installation.
+Create a content type e.g. "Slideshow Item" with the fields
 
-Note:
+Label              field
 
-You need to have CCK, imageapi, filefield and imagefield installed and enabled on 
-your Drupal installation, otherwise the import will not be successful.
+Title              title
+Image              field_image
+Slide Text         field_slide_text
+Pager Text         field_pager_text
+Body               body
 
-For more information see the Advanced slideshow tutorial on
-http://ddblock.myalbums.biz/node/751
+Create a view using these fields
 
-You can use the News items views block export to import the News items views block 
-into your Drupal installation.
+DDBLOCK MODULE CONFIGURATION
+----------------------------
+Choose a slideshow theme
+Map fields from the view to slideshow theme fields
+Configure the other slideshow settings
+Save the block
 
-For more information see the Advanced slideshow tutorial on
-http://ddblock.myalbums.biz/node/753
-  
-DDBLOCK PREPROCESS FUNCTIONS INSTALLATION
------------------------------------------
-* The preprocess functions are included in the export package
+Place the block in a region of your overall theme.
 
-* Copy the preprocess functions to your template.php file in your theme
-
-* Rename [THEME_NAME] to the name of your theme for both preprocess functions
-
-* Change the view_name in both preprocess functions if your view has another name 
-  then: news_items
- 
-* Change the fields to convert if you have other fieldnames in your view
-
-Note: You can see the view_name and the available view_fields by uncommenting the
-lines at the top of each preprocess function.
-
-For more information see the Advanced slideshow tutorial on 
-http://ddblock.myalbums.biz/node/747
-
-For frequently asked questions see the FAQ on
-http://ddblock.myalbums.biz/faq
+More documentation will follow.

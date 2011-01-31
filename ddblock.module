@@ -8,47 +8,55 @@
  */
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function ddblock_help($path, $arg) {
   switch ($path) {
     case "admin/help#ddblock":
-      $output = '<p>'. t('Display content dynamically in a block using the jQuery Cycle plugin and the jQuery Easing plugin') .'</p>';
-      $output .='<p>'. t('There are three methods to provide content for a dynamic display block. An input folder with images, a node from a content type or by making an instance of any block to use the block content of the original block as content for the dynamic display block') .'</p>';
+      $output = '<p>' . t('Display content dynamically in a block using the jQuery Cycle plugin and the jQuery Easing plugin') . '</p>';
+      $output .= '<p>' . t('There are three methods to provide content for a dynamic display block. An input folder with images, a node from a content type or by making an instance of any block to use the block content of the original block as content for the dynamic display block') . '</p>';
       return $output;
   }
 }
 
+/**
+ * add javascript and css files.
+ */
 function ddblock_init_js_css() {
   // get module path to dynamic display block module
   $ddblock_path = drupal_get_path('module', 'ddblock');
 
   //add jcycle plugin
-  drupal_add_js($ddblock_path .'/js/jquery.cycle.all.min.js', 'module');
+  drupal_add_js($ddblock_path . '/js/jquery.cycle.all.min.js');
 
   //add easing plugin
-  drupal_add_js($ddblock_path .'/js/jquery.easing.1.1.1.js', 'module');
+  $file_path = $ddblock_path . '/js/jquery.easing.1.3.js';
+  $checked_file_path = file_exists($file_path);
+
+  if ($checked_file_path) {
+    drupal_add_js($ddblock_path . '/js/jquery.easing.1.3.js');
+  }
+  //drupal_add_js($ddblock_path . '/js/jquery.easing.1.1.1.js');
+
+  // add json pack to parse json
+  drupal_add_js($ddblock_path . '/js/json2.pack.js');
 
   // add ddblock js file
-  drupal_add_js($ddblock_path .'/js/json2.pack.js', 'module');
-
-  // add ddblock js file
-  drupal_add_js($ddblock_path .'/js/ddblock.js', 'module');
+  drupal_add_js($ddblock_path . '/js/ddblock.js');
 
   // add Cascading style sheet
-  drupal_add_css($ddblock_path .'/ddblock.css', 'module', 'all', TRUE);
-};
-
+  drupal_add_css($ddblock_path . '/css/ddblock.css');
+}
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function ddblock_menu() {
 
   // add ddblock
-  $items['admin/settings/ddblock'] = array(
-    'title' => t('Dynamic display block'),
-    'description' => t('Configure settings for dynamic display block module.'),
+  $items['admin/structure/ddblock'] = array(
+    'title' => 'Dynamic display block',
+    'description' => 'Manage dynamic display blocks.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ddblock_block_add_form'),
     'access arguments' => array('administer dynamic display blocks'),
@@ -57,8 +65,8 @@ function ddblock_menu() {
   );
 
   // list tab in settings page.
-  $items['admin/settings/ddblock/list'] = array(
-    'title' => t('List'),
+  $items['admin/structure/ddblock/list'] = array(
+    'title' => 'List',
     'page arguments' => array('ddblock_block_add_form'),
     'access arguments' => array('administer dynamic display blocks'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
@@ -66,8 +74,8 @@ function ddblock_menu() {
   );
 
   // Settings tab in settings page.
-  $items['admin/settings/ddblock/settings'] = array(
-    'title' => t('Settings'),
+  $items['admin/structure/ddblock/settings'] = array(
+    'title' => 'Settings',
     'page arguments' => array('ddblock_settings_form'),
     'access arguments' => array('administer dynamic display blocks'),
     'type' => MENU_LOCAL_TASK,
@@ -76,8 +84,8 @@ function ddblock_menu() {
   );
 
   // Edit dynamic display block.
-  $items['admin/settings/ddblock/edit/%'] = array(
-    'title' => t('Edit dynamic display block'),
+  $items['admin/structure/ddblock/edit/%'] = array(
+    'title' => 'Edit dynamic display block',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ddblock_block_edit_form', 4),
     'access arguments' => array('administer dynamic display blocks'),
@@ -86,8 +94,8 @@ function ddblock_menu() {
   );
 
   // Delete dynamic display block or instance.
-  $items['admin/settings/ddblock/delete/%'] = array(
-    'title' => t('Delete dynamic display block'),
+  $items['admin/structure/ddblock/delete/%'] = array(
+    'title' => 'Delete dynamic display block',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ddblock_block_confirm_delete_form', 4),
     'access arguments' => array('administer dynamic display blocks'),
@@ -96,10 +104,10 @@ function ddblock_menu() {
   );
 
   // Add ddblock instance.
-  $items['admin/settings/ddblock/instances'] = array(
-    'title' => t('Instances'),
-    'description' => t('Create and delete instances of blocks.'),
-    'page callback' =>  'ddblock_instances',
+  $items['admin/structure/ddblock/instances'] = array(
+    'title' => 'Instances',
+    'description' => 'Create and delete instances of blocks.',
+    'page callback' => 'ddblock_instances',
     'access callback' => 'user_access',
     'access arguments' => array('administer blocks'),
     'type' => MENU_LOCAL_TASK,
@@ -113,67 +121,105 @@ function ddblock_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  $items['ddblock_mapping/js/%'] = array(
+    'page callback' => 'ddblock_mapping_js',
+    'page arguments' => array(2),
+    'access arguments' => array('access content'),
+    'type ' => MENU_CALLBACK,
+  );
+
+  // Ahah update available template sizes of themes.
+  // This block defines the path to which the AHAH call points.
+  // The path relays the call to a specific AHAH callback function.
+  $items['ddblock/js'] = array(
+    'page callback' => 'ddblock_select_template_ahah', // the AHAH callback function
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
 }
 
 /**
- * Implementation of hook_perm().
+ * Implements hook_permission().
  */
-function ddblock_perm() {
-  return array('administer dynamic display blocks', 'view dynamic display blocks');
+function ddblock_permission() {
+  return array(
+    'administer dynamic display blocks' => array(
+      'title' => t('administer dynamic display blocks'),
+      'description' => t('Allow users to administer dynamic display blocks'),
+    ),
+    'view dynamic display blocks' => array(
+      'title' => t('view dynamic display blocks'),
+      'description' => t('Allow users to view dynamic display blocks'),
+    ),
+  );
 }
 
 /**
- * Implementation of hook_block().
+ * Implements hook_block_info().
  */
-function ddblock_block($op='list', $delta=0, $edit = array()) {
-  switch ($op) {
-    // show info in block list on block administration page.
-    case 'list':
-      $blocks = ddblock_get_blocks(NULL);
-      $list = array();
-      foreach ($blocks as $block) {
-        $list[$block->delta] = array('info' => check_plain($block->title));
-        // Don't cache blocks.
-        $list[$block->delta]['cache'] = BLOCK_NO_CACHE;
-      }
-      return $list;
-
-    // the configuration page of the block.
-    case 'configure':
-      // if block is a ddblock instance invoke configure option of original block.
-      // with form_alter the ddblock settings are added.
-      $block = ddblock_get_blocks($delta);
-      if ($block->enabled) {
-        $module = $block->module;
-        $delta_original = $block->delta_original;
-        return module_invoke($module, 'block', $op, $delta_original);
-      }
-
-      // if block is a ddblock invoke the block configure page.
-      return ddblock_block_configure($delta);
-
-    // save configuraton settings.
-    case 'save':
-      //all blocks are instances of ddblock.
-      $module = 'ddblock';
-      ddblock_set_configuration_settings($module, $delta, $edit);
-      return;
-
-    // show block content (this is set to default).
-    case 'view': default:
-      //all blocks are instances of ddblock.
-      $module = 'ddblock';
-
-      if (user_access('view dynamic display blocks')) {
-        $block['subject'] = ddblock_subject($module, $delta);
-        $block['content'] = ddblock_content($module, $delta);
-        if (!empty($block['content'])) {
-          return $block;
-        }
-      }
-      return;
+function ddblock_block_info() {
+  $blocks = ddblock_get_blocks(NULL);
+  $list = array();
+  foreach ($blocks as $block) {
+    $list[$block->delta] = array(
+      'info' => check_plain($block->title),
+      'cache' => DRUPAL_NO_CACHE);     // Don't cache blocks.
   }
+
+  return $list;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function ddblock_block_configure($delta = '') {
+  // if block is a ddblock instance invoke configure option of original block.
+  // with form_alter the ddblock settings are added.
+  $block = ddblock_get_blocks($delta);
+  if ($block->enabled == 1) {
+    $module = $block->module;
+    $delta_original = $block->delta_original;
+    return module_invoke($module, 'block_configure', $delta_original);
+  }
+
+  // if block is a ddblock invoke the block configure page.
+  return ddblock_block_configure_form($delta);
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function ddblock_block_save($delta = '', $edit = array()) {
+  //all blocks are instances of ddblock.
+  $module = 'ddblock';
+  ddblock_set_configuration_settings($module, $delta, $edit);
+  $module = 'ddblock_cycle';
+  ddblock_set_cycle_configuration_settings($module, $delta, $edit);
+  if ($edit['input_type'] == 'instance' ) {
+    $module = 'ddblock_cycle';
+    ddblock_set_cycle_mapping_settings($module, $delta, $edit);
+  }
+}
+/**
+ * Implements hook_block_view().
+ */
+function ddblock_block_view($delta = '') {
+  $block = array();
+
+  //all blocks are instances of ddblock.
+  $module = 'ddblock';
+
+  if (user_access('view dynamic display blocks')) {
+    $block['subject'] = ddblock_subject($module, $delta);
+    $block['content'] = ddblock_content($module, $delta);
+
+    if (!empty($block['content'])) {
+      return $block;
+    }
+  }
+  return;
 }
 
 /**
@@ -192,8 +238,12 @@ function ddblock_get_blocks($delta = NULL, $reset = FALSE) {
 
   if (!isset($blocks) || $reset) {
     $blocks = array();
-    $result = db_query("SELECT * FROM {ddblock_block}");
-    while ($block = db_fetch_object($result)) {
+
+    $sql = "SELECT * " .
+           "FROM {ddblock_block}";
+    $results = db_query($sql);
+
+    while ($block = $results->fetchObject()) {
       $blocks[$block->delta] = $block;
     }
   }
@@ -210,62 +260,21 @@ function ddblock_get_blocks($delta = NULL, $reset = FALSE) {
  * @return
  *   form with configuration settings.
  */
-function ddblock_block_configure($delta) {
+function ddblock_block_configure_form($delta) {
 
-  // get saved or default configuration settings.
-  $configuration_settings = ddblock_get_configuration_settings('ddblock', $delta);
-
-  $container = _ddblock_get_variable($configuration_settings['container'], 'img');
-  $content_type = _ddblock_get_variable($configuration_settings['content_type'], 'none');
-  $custom_jquery = _ddblock_get_variable($configuration_settings['custom_jquery'], '');
-  // get folder relative to the drupal folder settings
-  $folder = _ddblock_get_variable($configuration_settings['folder'], 'images/ddblock');
-  $fx = _ddblock_get_variable($configuration_settings['fx'], "fade");
-  $height = _ddblock_get_variable($configuration_settings['height'], 195);
-  $ignore_files = _ddblock_get_variable($configuration_settings['ignore_files'], '');
-  $image_height = _ddblock_get_variable($configuration_settings['image_height'], 183);
-  $image_width = _ddblock_get_variable($configuration_settings['image_width'], 183);
-  $imgcache_toggle = _ddblock_get_variable($configuration_settings['imgcache_toggle'], 0);
-  $imgcache_slide = _ddblock_get_variable($configuration_settings['imgcache_slide'], '<none>');
-  $imgcache_pager_item = _ddblock_get_variable($configuration_settings['imgcache_pager_item'], '<none>');
-  $input_type = _ddblock_get_variable($configuration_settings['input_type'], 'images');
-  $max_image = _ddblock_get_variable($configuration_settings['max_image'], 5);
-  $next = _ddblock_get_variable($configuration_settings['next'], 0);
-  $nodes = _ddblock_get_variable($configuration_settings['nodes'], '');
-  $node_body_teaser = _ddblock_get_variable($configuration_settings['node_body_teaser'], 'body');
-  $order = _ddblock_get_variable($configuration_settings['order'], 'asc');
-  $overflow = _ddblock_get_variable($configuration_settings['overflow'], 1);
-  $pause = _ddblock_get_variable($configuration_settings['pause'], 1);
-  $pager_toggle = _ddblock_get_variable($configuration_settings['pager_toggle'], 0);
-  $pager = _ddblock_get_variable($configuration_settings['pager'], 'none');
-  $pager_event = _ddblock_get_variable($configuration_settings['pager_event'], 'click');
-  $pager2 = _ddblock_get_variable($configuration_settings['pager2'], 0);
-  $pager2_event = _ddblock_get_variable($configuration_settings['pager2_event'], 'click');
-  $pager2_position = _ddblock_get_variable($configuration_settings['pager2_position'], array('slide' => 'slide', 'pager' => 0));
-  $pager2_slide_prev = _ddblock_get_variable($configuration_settings['pager2_slide_prev'], '');
-  $pager2_slide_next = _ddblock_get_variable($configuration_settings['pager2_slide_next'], '');
-  $pager2_slide_hide = _ddblock_get_variable($configuration_settings['pager2_slide_hide'], 1);
-  $pager2_pager_prev = _ddblock_get_variable($configuration_settings['pager2_pager_prev'], 'prev');
-  $pager2_pager_next = _ddblock_get_variable($configuration_settings['pager2_pager_next'], 'next');
-  $pager2_pager_hide = _ddblock_get_variable($configuration_settings['pager2_pager_hide'], 1);
-  $pager_fast = _ddblock_get_variable($configuration_settings['pager_fast'], 1);
-  $pager_pause = _ddblock_get_variable($configuration_settings['pager_pause'], 1);
-  if (($pager == 'number-pager') || ($pager2 == 1)) {
-    $pager_height = _ddblock_get_variable($configuration_settings['pager_height'], 25);
-    $pager_width = _ddblock_get_variable($configuration_settings['pager_width'], 195);
+  // get configuration settings
+  foreach (ddblock_get_configuration_settings('ddblock', $delta)->settings() as $key => $value) {
+    ${$key} = $value;
   }
-  else {
-    $pager_height = _ddblock_get_variable($configuration_settings['pager_height'], 63);
-    $pager_width = _ddblock_get_variable($configuration_settings['pager_width'], 195);
+  // get configuration settings
+  foreach (ddblock_get_cycle_configuration_settings('ddblock_cycle', $delta)->settings() as $key => $value) {
+    ${$key} = $value;
   }
-  $speed = _ddblock_get_variable($configuration_settings['speed'], 500);
-  $timeout = _ddblock_get_variable($configuration_settings['timeout'], 5000);
-  $width = _ddblock_get_variable($configuration_settings['width'], 195);
 
   // get module path to dynamic display block module
   $ddblock_path = drupal_get_path('module', 'ddblock');
   // add ddblock js file
-  drupal_add_js($ddblock_path .'/js/ddblock.admin.js', 'module');
+  drupal_add_js($ddblock_path . '/js/ddblock.admin.js');
 
   // Need this for AJAX.
   $form['#cache'] = TRUE;
@@ -277,10 +286,14 @@ function ddblock_block_configure($delta) {
     '#title' => t('Content settings'),
     '#prefix' => '<div id="ddblock-content-settings">',
     '#suffix' => '</div>',
-    '#weight' => -3,
+    '#weight' => -1,
   );
 
-  $options = array('images' => t('Image folder'), 'nodes' => t('Content type'));
+  // input type settings
+  $options = array(
+    'images' => t('Image folder'),
+    'nodes' => t('Content type'),
+  );
   $form['content']['input_type'] = array(
     '#type' => 'select',
     '#title' => t('Input type'),
@@ -290,7 +303,6 @@ function ddblock_block_configure($delta) {
     '#required' => TRUE,
     '#description' => t("Input of the dynamic display block."),
     '#weight' => -7,
-
   );
 
   // image folder settings.
@@ -322,7 +334,6 @@ function ddblock_block_configure($delta) {
       You can use a comma seprated list"),
   );
 
-
   $form['content']['image_folder']['max_image'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of images'),
@@ -341,7 +352,7 @@ function ddblock_block_configure($delta) {
     '#weight' => -5,
   );
 
-  //get possible content types from settings.
+  // get possible content types from settings.
   $node_types = variable_get('ddblock_node_type', array());
   foreach ($node_types as $key => $value ) {
     if ($value) {
@@ -358,7 +369,7 @@ function ddblock_block_configure($delta) {
     '#default_value' => $content_type,
     '#options' => $content_types,
     '#description' => t("The nodes of the content type to be used as content of dynamic display block."),
-    '#attributes' => array('class' => 'content-type-select'),
+    '#attributes' => array('class' => array('content-type-select')),
     '#ahah' => array(
       'path' => 'ddblock/js/select_nodes',
       'wrapper' => 'select-nodes-wrapper',
@@ -368,9 +379,10 @@ function ddblock_block_configure($delta) {
 
   ddblock_select_nodes_form($form, $content_type, $nodes);
 
-  $options = array('body' => t('Body'),
-                   'teaser' => t('Teaser'),
-                  );
+  $options = array(
+    'body' => t('Body'),
+    'teaser' => t('Teaser'),
+  );
   $form['content']['content_types']['node_body_teaser'] = array(
     '#type' => 'radios',
     '#title' => t('Node content'),
@@ -382,59 +394,56 @@ function ddblock_block_configure($delta) {
   );
 
 
-  // if image cache module exist make it possible to use image cache presets
-  if ((module_exists('imagecache')) && (is_array(imagecache_presets()))) {
-    $imgcache_options = array('<none>' => '<none>');
-    // get imagecache presets using imagecache function
-    foreach (imagecache_presets() as $preset) {
-      $name = $preset['presetname'];
-      $imgcache_options[$name] = $name;
-    }
-    $imgcache_slide_desc = t("Imagecache preset to use for slide image");
-    $imgcache_pager_item_desc = t("Imagecache preset to use for pager-item image. Only for themes that use an image in the pager");
+  // get image style options
+  $image_style_options = image_style_options(FALSE);
+  // if image styles exist make it possible to use image styles
+  if (is_array($image_style_options)) {
+    $image_style_options['none'] = 'None';
+    $image_style_slide_desc = t("Style options to use for slide image");
+    $image_style_pager_item_desc = t("Style options to use for pager-item image. Only for themes that use an image in the pager");
 
-    // Image cache toggle
-    $form['block_settings']['imgcache_toggle'] = array(
+    // Image style toggle
+    $form['block_settings']['image_style_toggle'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Use imagecache presets'),
-      '#default_value' => $imgcache_toggle,
+      '#title' => t('Use image styles'),
+      '#default_value' => $image_style_toggle,
       '#required' => FALSE,
-      '#description' => t("Use imagecache presets for images"),
+      '#description' => t("Use image styles for images"),
       '#weight' => -5,
     );
 
-    // Image cache settings.
-    $form['block_settings']['imgcache'] = array(
+    // Image style settings.
+    $extra = (empty($image_style_toggle)) ? ' style="display:none"' : '';
+    $form['block_settings']['image_style'] = array(
       '#type' => 'fieldset',
       '#collapsible' => TRUE,
-      '#title' => t('Image cache preset settings'),
-      '#prefix' => '<div id="ddblock-imgcache-settings-wrapper"'. $extra .'>',
+      '#title' => t('Image styles settings'),
+      '#prefix' => '<div id="ddblock-image-style-settings-wrapper"' . $extra . '>',
       '#suffix' => '</div>',
       '#weight' => -4,
     );
 
-    $form['block_settings']['imgcache']['imgcache_slide'] = array(
+    $form['block_settings']['image_style']['image_style_slide'] = array(
       '#type' => 'select',
-      '#title' => t('Imagecache slide image'),
-      '#default_value' => $imgcache_slide,
-      '#options' => $imgcache_options,
+      '#title' => t('Image style slide image'),
+      '#default_value' => $image_style_slide,
+      '#options' => $image_style_options,
       '#multiple' => FALSE,
       '#required' => FALSE,
-      '#description' => $imgcache_slide_desc,
+      '#description' => $image_style_slide_desc,
       '#weight' => 1,
     );
 
-    $form['block_settings']['imgcache']['imgcache_pager_item'] = array(
+    $form['block_settings']['image_style']['image_style_pager_item'] = array(
       '#type' => 'select',
-      '#title' => t('Imagecache pager-item image'),
-      '#default_value' => $imgcache_pager_item,
-      '#options' => $imgcache_options,
+      '#title' => t('Image style pager-item image'),
+      '#default_value' => $image_style_pager_item,
+      '#options' => $image_style_options,
       '#multiple' => FALSE,
       '#required' => FALSE,
-      '#description' => $imgcache_pager_item_desc,
+      '#description' => $image_style_pager_item_desc,
       '#weight' => 2,
     );
-
   }
 
   // content container settings.
@@ -445,12 +454,12 @@ function ddblock_block_configure($delta) {
     '#weight' => -4,
   );
 
-  $form['content']['content_container']['container'] = array(
+  $form['content']['content_container']['container_basic'] = array(
     '#type' => 'textfield',
     '#title' => t('Content container'),
-    '#default_value' => $container,
+    '#default_value' => $container_basic,
     '#required' => FALSE,
-    '#description' => t("Container of the content to show, eg. img, to show images."),
+    '#description' => t("Container of the content to show, eg. div.slide, to show the content of slides."),
   );
 
   $form['content']['content_container']['overflow'] = array(
@@ -466,7 +475,7 @@ function ddblock_block_configure($delta) {
     '#title' => t('Height'),
     '#default_value' => $height,
     '#required' => FALSE,
-    '#description' => t("Height of the content to show"),
+    '#description' => t("Height of the content to show.<br /> This value is often higher as the image height"),
   );
 
   $form['content']['content_container']['width'] = array(
@@ -474,7 +483,7 @@ function ddblock_block_configure($delta) {
     '#title' => t('Width'),
     '#default_value' => $width,
     '#required' => FALSE,
-    '#description' => t("Width of the content to show"),
+    '#description' => t("Width of the content to show.<br />This value is often higher as the image widht"),
   );
 
   // Image settings.
@@ -482,7 +491,7 @@ function ddblock_block_configure($delta) {
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
     '#title' => t('Image settings'),
-    '#description' => t('Set to 0 (zero) for both the height and the width to be able to use the original image size or imagecache presets'),
+    '#description' => t('Set to 0 (zero) for both the height and the width to be able to use the original image size or image styles.<br />To show all the images the height and width of the content container must be bigger that the biggest image.'),
     '#weight' => -3,
   );
   $form['content']['images']['image_height'] = array(
@@ -509,10 +518,11 @@ function ddblock_block_configure($delta) {
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
     '#title' => t('Settings'),
-    '#weight' => -2,
+    '#weight' => 11,
   );
 
-  $options =_ddblock_get_effects();
+  // transition effect settings
+  $options = _ddblock_get_effects();
   $form['block_settings']['settings']['fx'] = array(
     '#type' => 'select',
     '#title' => t('Transition Effect'),
@@ -523,6 +533,7 @@ function ddblock_block_configure($delta) {
     '#description' => t("The transition effect between content.<br />(all for random effect per slide, none for no effect)<br />Multiple effects can be set in the Custom jQuery Cycle Plugin Settings."),
   );
 
+  // speed settings
   $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000));
 
   $form['block_settings']['settings']['speed'] = array(
@@ -534,6 +545,7 @@ function ddblock_block_configure($delta) {
     '#description' => t("Speed of the transitions (1000 = 1 second, 0 = direct)."),
   );
 
+  // timeout settings
   $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000, 30000));
   $form['block_settings']['settings']['timeout'] = array(
     '#type' => 'select',
@@ -544,11 +556,11 @@ function ddblock_block_configure($delta) {
     '#description' => t("The time (in milliseconds) between transitions (1000 = 1 second, 0 to disable auto advance)."),
   );
 
+  // order settings
   $options = array(
     'none' => t('None'),
     'asc' => t('Ascending'),
     'desc' => t('Descending'),
-    'random' => t('Random'),
   );
   $form['block_settings']['settings']['order'] = array(
     '#type' => 'radios',
@@ -560,6 +572,7 @@ function ddblock_block_configure($delta) {
     '#description' => t("The display order of the content. None for using the original content order."),
   );
 
+  // pause settings
   $form['block_settings']['settings']['pause'] = array(
     '#type' => 'checkbox',
     '#title' => t('Pause'),
@@ -567,6 +580,7 @@ function ddblock_block_configure($delta) {
     '#description' => t("Enable users to pause the cycle by hovering on the content."),
   );
 
+  // next settings
   $form['block_settings']['settings']['next'] = array(
     '#type' => 'checkbox',
     '#title' => t('Next'),
@@ -574,7 +588,7 @@ function ddblock_block_configure($delta) {
     '#description' => t("Enable users to advanced to the next content by clicking on the content."),
   );
 
-  // pager settings toggle
+  // pager settings
   $form['block_settings']['settings']['pager_toggle'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use Pager'),
@@ -583,31 +597,22 @@ function ddblock_block_configure($delta) {
     '#description' => t("Use a pager to select slides"),
   );
 
-  // pager settings.
   // show fields when using pager
   $extra = (empty($pager_toggle)) ? ' style="display:none"' : '';
   $form['block_settings']['settings']['pager_settings'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
-    '#prefix' => '<div id="ddblock-pager-settings-wrapper"'. $extra .'>',
+    '#prefix' => '<div id="ddblock-pager-settings-wrapper"' . $extra . '>',
     '#suffix' => '</div>',
     '#title' => t('Pager settings'),
   );
 
-  if ($input_type == 'images') {
-    $options = array(
-      'none' => t('None'),
+  $options = array(
       'number-pager' => t('Number pager'),
+      'prev-next-pager' => t('Prev next pager'),
       'image-pager' => t('Image pager'),
-    );
-  }
-  else {
-    $options = array(
-      'none'            => t('None'),
-      'number-pager' => t('Number Pager'),
-    );
-  }
+  );
 
   $form['block_settings']['settings']['pager_settings']['pager'] = array(
     '#type' => 'select',
@@ -647,7 +652,7 @@ function ddblock_block_configure($delta) {
     '#required' => FALSE,
     '#description' => t("Width of the pager"),
   );
-    $form['block_settings']['settings']['pager_settings']['pager_fast'] = array(
+  $form['block_settings']['settings']['pager_settings']['pager_fast'] = array(
     '#type' => 'checkbox',
     '#title' => t('Fast Pager'),
     '#default_value' => $pager_fast,
@@ -663,221 +668,68 @@ function ddblock_block_configure($delta) {
     '#description' => t("Pause the slideshow when pager hovered."),
   );
 
-/*  $form['block_settings']['settings']['pager2'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Prev/Next Pager'),
-    '#default_value' => $pager2,
-    '#required' => FALSE,
-    '#description' => t("Add a previous/next pager."),
-  );
+   // prev/next pager settings.
+  $form['block_settings']['settings']['pager2'] = array(
+   '#type' => 'checkbox',
+   '#title' => t('Prev/Next Pager'),
+   '#default_value' => $pager2,
+   '#required' => FALSE,
+   '#description' => t("Add a previous/next pager."),
+   );
 
-  // pager settings.
-  // show fields when using pager
-  $extra = (empty($pager2)) ? ' style="display:none"' : '';
-  $form['block_settings']['settings']['pager2_settings'] = array(
-    '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-    '#prefix' => '<div id="ddblock-pager2-settings-wrapper"'. $extra .'>',
-    '#suffix' => '</div>',
-    '#title' => t('Prev/next pager settings'),
-  );
+   // show fields when using pager
+   $extra = (empty($pager2)) ? ' style="display:none"' : '';
+   $form['block_settings']['settings']['pager2_settings'] = array(
+   '#type' => 'fieldset',
+   '#collapsible' => TRUE,
+   '#collapsed' => FALSE,
+   '#prefix' => '<div id="ddblock-pager2-settings-wrapper"' . $extra . '>',
+   '#suffix' => '</div>',
+   '#title' => t('Prev/next pager settings'),
+   );
 
-  $options = array(
-    'click' => t('Click'),
-    'mouseover' => t('Mouseover'),
-  );
+   $options = array(
+   'click' => t('Click'),
+   'mouseover' => t('Mouseover'),
+   );
 
-  $form['block_settings']['settings']['pager2_settings']['pager2_event'] = array(
-    '#type' => 'select',
-    '#title' => t('Pager event'),
-    '#default_value' => $pager2_event,
-    '#options' => $options,
-    '#required' => FALSE,
-    '#description' => t("The event on which the prev/next pager reacts."),
-  );
+   $form['block_settings']['settings']['pager2_settings']['pager2_event'] = array(
+   '#type' => 'select',
+   '#title' => t('Pager event'),
+   '#default_value' => $pager2_event,
+   '#options' => $options,
+   '#required' => FALSE,
+   '#description' => t("The event on which the prev/next pager reacts."),
+   );
 
-  $form['block_settings']['settings']['pager2_settings']['pager2_slide_prev'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Prev text on slide'),
-    '#default_value' => $pager2_slide_prev,
-    '#size' => 30,
-    '#required' => FALSE,
-    '#description' => t("Caption for the prev pager on the slide.<br />Can also be empty if you use an image to go to the previous slide."),
-  );
+   $form['block_settings']['settings']['pager2_settings']['pager2_slide_prev'] = array(
+   '#type' => 'textfield',
+   '#title' => t('Prev text on slide'),
+   '#default_value' => $pager2_slide_prev,
+   '#size' => 30,
+   '#required' => FALSE,
+   '#description' => t("Caption for the prev pager on the slide.<br />Can also be empty if you use a background image to go to the previous slide."),
+   );
 
-  $form['block_settings']['settings']['pager2_settings']['pager2_slide_next'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Next text on slide'),
-    '#default_value' => $pager2_slide_next,
-    '#size' => 30,
-    '#required' => FALSE,
-    '#description' => t("Caption for the next pager on the slide.<br />Can also be empty if you use an image to go to the next slide."),
-  );
+   $form['block_settings']['settings']['pager2_settings']['pager2_slide_next'] = array(
+   '#type' => 'textfield',
+   '#title' => t('Next text on slide'),
+   '#default_value' => $pager2_slide_next,
+   '#size' => 30,
+   '#required' => FALSE,
+   '#description' => t("Caption for the next pager on the slide.<br />Can also be empty if you use a background image to go to the next slide."),
+   );
 
-  $form['block_settings']['settings']['pager2_settings']['pager2_pager_prev'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Prev text in pager'),
-    '#default_value' => $pager2_pager_prev,
-    '#size' => 30,
-    '#required' => FALSE,
-    '#description' => t("Caption for the prev pager on the slide.<br />Can also be empty if you use an image to go to the previous slide."),
-  );
+   // hide prev/next pager when no prev/next slide available
+   $form['block_settings']['settings']['pager2_settings']['pager2_slide']['pager2_slide_hide'] = array(
+   '#type' => 'checkbox',
+   '#title' => t('Prev/Next Hide'),
+   '#default_value' => $pager2_slide_hide,
+   '#required' => FALSE,
+   '#description' => t("Hide Prev/Next Pager when no slide available."),
+   );
 
-  $form['block_settings']['settings']['pager2_settings']['pager2_pager_next'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Next text in pager'),
-    '#default_value' => $pager2_pager_next,
-    '#size' => 30,
-    '#required' => FALSE,
-    '#description' => t("Caption for the next pager on the slide.<br />Can also be empty if you use an image to go to the next slide."),
-  );
-*/
-      // pager settings togg;e
-      $form['block_settings']['settings']['pager2'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Use Prev/Next Pager'),
-        '#default_value' => $pager2,
-        '#required' => FALSE,
-        '#description' => t("Use a Prev/Next Pager to select slides"),
-      );
-
-      // pager2 settings.
-      //show fields when using pager
-      $extra = (empty($pager2)) ? ' style="display:none"' : '';
-      $form['block_settings']['settings']['pager2_settings'] = array(
-        '#type' => 'fieldset',
-        '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
-        '#prefix' => '<div id="ddblock-pager2-settings-wrapper"'. $extra .'>',
-        '#suffix' => '</div>',
-        '#title' => t('Prev/next pager settings'),
-      );
-
-      $form['block_settings']['settings']['pager2_settings']['pager2_event'] = array(
-        '#type' => 'select',
-        '#title' => t('Pager event'),
-        '#default_value' => $pager2_event,
-        '#prefix' => '<div id="ddblock-pager2-event-wrapper">',
-        '#suffix' => '</div>',
-        '#options' => $options,
-        '#required' => FALSE,
-        '#description' => t("The event on which the prev/next pager reacts."),
-      );
-
-      $options = array(
-        'pager' => t('Pager'),
-        'slide' => t('Slide'),
-      );
-
-      $form['block_settings']['settings']['pager2_settings']['pager2_position'] = array(
-      '#type' => 'checkboxes',
-      '#title' => t('Pager position'),
-      '#default_value' => $pager2_position,
-      '#prefix' => '<div id="ddblock-pager2-position-wrapper">',
-      '#suffix' => '</div>',
-      '#options' => $options,
-      '#multiple' => TRUE,
-      '#required' => FALSE,
-      '#description' => t("Possible position for the prev/next pager.<br />The position must be supported by the template used to be effective."),
-      );
-
-
-      // pager2 settings pager.
-      //show fields when using pager pager
-      $extra = (empty($pager2)) ? ' style="display:none"' : '';
-      $form['block_settings']['settings']['pager2_settings']['pager2_pager'] = array(
-        '#type' => 'fieldset',
-        '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
-        '#prefix' => '<div id="ddblock-pager2-pager-settings-wrapper"'. $extra .'>',
-        '#suffix' => '</div>',
-        '#title' => t('Pager Pager'),
-      );
-
-
-      $form['block_settings']['settings']['pager2_settings']['pager2_pager']['pager2_pager_prev'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Prev text in pager'),
-      '#default_value' => $pager2_pager_prev,
-      '#prefix' => '<div id="ddblock-pager2-pager-prev-text-wrapper">',
-      '#size' => 30,
-      '#suffix' => '</div>',
-      '#required' => FALSE,
-      '#description' => t("Caption for the prev pager in the pager.<br />Can also be empty if you use an image to go to the previous slide."),
-      );
-
-      $form['block_settings']['settings']['pager2_settings']['pager2_pager']['pager2_pager_next'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Next text in pager'),
-      '#default_value' => $pager2_pager_next,
-      '#prefix' => '<div id="ddblock-pager2-pager-next-text-wrapper">',
-      '#size' => 30,
-      '#suffix' => '</div>',
-      '#required' => FALSE,
-      '#description' => t("Caption for the next pager in the pager.<br />Can also be empty if you use an image to go to the next slide."),
-      );
-
-      // hide prev/next pager when no prev/next slide available
-      $form['block_settings']['settings']['pager2_settings']['pager2_pager']['pager2_pager_hide'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Prev/Next Hide'),
-        '#default_value' => $pager2_pager_hide,
-        '#required' => FALSE,
-        '#description' => t("Hide Prev/Next Pager when no slide available."),
-      );
-
-      // pager2 settings slide.
-      //show fields when using slide pager
-      $extra = (empty($pager2)) ? ' style="display:none"' : '';
-      $form['block_settings']['settings']['pager2_settings']['pager2_slide'] = array(
-        '#type' => 'fieldset',
-        '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
-        '#prefix' => '<div id="ddblock-pager2-slide-settings-wrapper"'. $extra .'>',
-        '#suffix' => '</div>',
-        '#title' => t('Slide Pager'),
-      );
-
-
-      $options = array(
-        'click' => t('Click'),
-        'mouseover' => t('Mouseover'),
-      );
-
-      $form['block_settings']['settings']['pager2_settings']['pager2_slide']['pager2_slide_prev'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Prev text on slide'),
-      '#default_value' => $pager2_slide_prev,
-      '#prefix' => '<div id="ddblock-pager2-slide-prev-text-wrapper">',
-      '#size' => 30,
-      '#suffix' => '</div>',
-      '#required' => FALSE,
-      '#description' => t("Caption for the prev pager on the slide.<br />Can also be empty if you use an image to go to the previous slide."),
-      );
-
-      $form['block_settings']['settings']['pager2_settings']['pager2_slide']['pager2_slide_next'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Next text on slide'),
-      '#default_value' => $pager2_slide_next,
-      '#prefix' => '<div id="ddblock-pager2-slide-next-text-wrapper">',
-      '#size' => 30,
-      '#suffix' => '</div>',
-      '#required' => FALSE,
-      '#description' => t("Caption for the next pager on the slide.<br />Can also be empty if you use an image to go to the next slide."),
-      );
-
-      // hide prev/next pager when no prev/next slide available
-      $form['block_settings']['settings']['pager2_settings']['pager2_slide']['pager2_slide_hide'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Prev/Next Hide'),
-        '#default_value' => $pager2_slide_hide,
-        '#required' => FALSE,
-        '#description' => t("Hide Prev/Next Pager when no slide available."),
-      );
-
-
-
+  // custom jcycle plugin settings
   // collapsed or not collapsed depending on value for custom settings.
   if ($custom_jquery) {
     $collapsed = FALSE;
@@ -905,7 +757,7 @@ function ddblock_block_configure($delta) {
     '#description' => t('Use valid JSON syntax, with double quotes for key/and string value pairs.<br />The total script needs to be enclosed in curly brackets.<br />No comma allowed after the last statement like in an array.<br />e.g.<br />{"fx":"fade",<br />"startingSlide":2,<br />"autostop":1}'),
   );
 
-  $form['#redirect'] = 'admin/settings/ddblock/list';
+  $form_state['redirect'] = 'admin/structure/ddblock/list';
 
   return $form;
 }
@@ -928,7 +780,6 @@ function ddblock_block_configure($delta) {
  *   form fields.
  */
 function ddblock_select_nodes_form(&$form, $content_type, $nodes) {
-
   // Wrapper for nodes select box.
   $form['content']['content_types']['select_nodes'] = array(
     '#type' => 'hidden',
@@ -937,7 +788,7 @@ function ddblock_select_nodes_form(&$form, $content_type, $nodes) {
   );
   // no content type selected (show text 'No content type selected').
   if ($content_type == 'none') {
-    $form['content']['content_types']['select_nodes']['#prefix'] .= '<em>'. t('No content type selected.') .'</em>';
+    $form['content']['content_types']['select_nodes']['#prefix'] .= '<em>' . t('No content type selected.') . '</em>';
     $form['content']['content_types']['select_nodes']['#suffix'] = '</div>';
 
     unset($form['content']['content_types']['nodes']);
@@ -955,7 +806,7 @@ function ddblock_select_nodes_form(&$form, $content_type, $nodes) {
         '#default_value' => $nodes,
         '#description' => t('The node to show in the Dynamic display block'),
         '#options' => $options,
-        '#attributes' => array('class' => 'content-type-select'),
+        '#attributes' => array('class' => array('content-type-select')),
         '#suffix' => '</div>',
       );
     }
@@ -965,7 +816,7 @@ function ddblock_select_nodes_form(&$form, $content_type, $nodes) {
 }
 
 /**
- * Implementation of hook_form_alter().
+ * Implements hook_form_alter().
  *
  * Used to add dynamic display block configuration settings to dynamic display block instances.
  */
@@ -974,9 +825,9 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
   $delta = arg(5);
 
   if ((isset($delta) && ($module == 'ddblock'))
-    && (user_access('administer dynamic display blocks'))
-    && (user_access('administer blocks'))
-    && ($form_id == 'block_admin_configure')) {
+     && (user_access('administer dynamic display blocks'))
+     && (user_access('administer blocks'))
+     && ($form_id == 'block_admin_configure')) {
 
     // get original block_settings.
     $block = ddblock_get_blocks($delta);
@@ -992,80 +843,65 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       }
     }
     if ($block_enabled) {
+       if ($module_original == 'views') {
+         // block.module has a delta length limit of 32, but deltas in the views module can
+         // be longer because view names can be 32 and display IDs can also be 32.
+         // So for very long deltas, md5 hashes are used.
+         if (strlen($delta_original) == 32) {
+           $hashes = variable_get('views_block_hashes', array());
+           if (!empty($hashes[$delta_original])) {
+             $delta_original = $hashes[$delta_original];
+           }
+         }
+         list($view_name, $display_id) = explode('-', $delta_original);
+         // Load the view
+         if ($view = views_get_view($view_name)) {
+           if ($view->access($display_id)) {
+              // get the possible source fields form the view
+             $source_fields = array('none' => t('--None--'));
+             $display = $view->display[$display_id];
+
+             foreach ($display->handler->get_handlers('field') as $field => $handler) {
+               $format = isset($handler->options['format']) ? ' - ' . $handler->options['format'] : '';
+               if ($label = $handler->label()) {
+                 $source_fields[$field] = $label . $format;
+               }
+               else {
+                 $source_fields[$field] = $handler->ui_name() . $format;
+               }
+             }
+           }
+         }
+       }
 
       // get module path to dynamic display block module
       $ddblock_path = drupal_get_path('module', 'ddblock');
       // add ddblock js file
-      drupal_add_js($ddblock_path .'/js/ddblock.admin.js', 'module');
-      drupal_add_js($ddblock_path .'/js/jquery.selectboxes.js', 'module');
+      drupal_add_js($ddblock_path . '/js/ddblock.admin.js');
+      drupal_add_js($ddblock_path . '/js/jquery.selectboxes.js');
 
-      // get settings.
-      $configuration_settings = ddblock_get_configuration_settings($module, $delta);
-
-      $advanced =_ddblock_get_variable($configuration_settings['advanced'], 1);
-      $container = _ddblock_get_variable($configuration_settings['container'], 'div.slide');
-      $custom_jquery = _ddblock_get_variable($configuration_settings['custom_jquery'], '');
-      $debug_info = _ddblock_get_variable($configuration_settings['debug_info'], 'none');
-      $fx = _ddblock_get_variable($configuration_settings['fx'], "fade");
-      $height = _ddblock_get_variable($configuration_settings['height'], 195);
-      $image_height = _ddblock_get_variable($configuration_settings['image_height'], 195);
-      $image_width = _ddblock_get_variable($configuration_settings['image_width'], 195);
-      $imgcache_toggle = _ddblock_get_variable($configuration_settings['imgcache_toggle'], 0);
-      $imgcache_slide = _ddblock_get_variable($configuration_settings['imgcache_slide'], '<none>');
-      $imgcache_pager_item = _ddblock_get_variable($configuration_settings['imgcache_pager_item'], '<none>');
-      $next = _ddblock_get_variable($configuration_settings['next'], 0);
-      $order = _ddblock_get_variable($configuration_settings['order'], 'asc');
-      $output = _ddblock_get_variable($configuration_settings['output'], 'view_content');
-      $overflow = _ddblock_get_variable($configuration_settings['overflow'], 1);
-      $pager_toggle = _ddblock_get_variable($configuration_settings['pager_toggle'], 0);
-      $pager = _ddblock_get_variable($configuration_settings['pager'], 'none');
-      $pager_event = _ddblock_get_variable($configuration_settings['pager_event'], 'click');
-      $pager2 = _ddblock_get_variable($configuration_settings['pager2'], 0);
-      $pager2_event = _ddblock_get_variable($configuration_settings['pager2_event'], 'click');
-      $pager2_position = _ddblock_get_variable($configuration_settings['pager2_position'], 'slide');
-      $pager2_slide_prev = _ddblock_get_variable($configuration_settings['pager2_slide_prev'], '');
-      $pager2_slide_next = _ddblock_get_variable($configuration_settings['pager2_slide_next'], '');
-      $pager2_slide_hide = _ddblock_get_variable($configuration_settings['pager2_slide_hide'], 1);
-      $pager2_pager_prev = _ddblock_get_variable($configuration_settings['pager2_pager_prev'], '');
-      $pager2_pager_next = _ddblock_get_variable($configuration_settings['pager2_pager_next'], '');
-      $pager2_pager_hide = _ddblock_get_variable($configuration_settings['pager2_pager_hide'], 1);
-      $pager_fast = _ddblock_get_variable($configuration_settings['pager_fast'], 1);
-      $pager_pause = _ddblock_get_variable($configuration_settings['pager_pause'], 1);
-      if (($pager == 'number-pager') || ($pager2 == 1)) {
-        $pager_height = _ddblock_get_variable($configuration_settings['pager_height'], 25);
-        $pager_width = _ddblock_get_variable($configuration_settings['pager_width'], 195);
+      // get configuration settings
+      foreach (ddblock_get_configuration_settings('ddblock', $delta)->settings() as $key => $value) {
+        ${$key} = $value;
       }
-      else {
-        $pager_height = _ddblock_get_variable($configuration_settings['pager_height'], 63);
-        $pager_width = _ddblock_get_variable($configuration_settings['pager_width'], 195);
+      // get cycle configuration settings
+      foreach (ddblock_get_cycle_configuration_settings('ddblock_cycle', $delta)->settings() as $key => $value) {
+        ${$key} = $value;
       }
-      $pager_container = _ddblock_get_variable($configuration_settings['pager_container'], '.custom-pager-item');
-      $pager_position = _ddblock_get_variable($configuration_settings['pager_position'], 'top');
-      $pause = _ddblock_get_variable($configuration_settings['pause'], 1);
-      $slide_text = _ddblock_get_variable($configuration_settings['slide_text'], 1);
-      $slide_text_jquery = _ddblock_get_variable($configuration_settings['slide_text_jquery'], 0);
-      $slide_text_after_effect = _ddblock_get_variable($configuration_settings['slide_text_after_effect'], 'fadeIn');
-      $slide_text_after_speed = _ddblock_get_variable($configuration_settings['slide_text_after_speed'], 1000);
-      $slide_text_before_effect = _ddblock_get_variable($configuration_settings['slide_text_before_effect'], 'fadeOut');
-      $slide_text_before_speed = _ddblock_get_variable($configuration_settings['slide_text_before_speed'], 250);
-      $slide_text_container = _ddblock_get_variable($configuration_settings['slide_text_container'], 'div.slide-text');
-      $slide_text_position =_ddblock_get_variable($configuration_settings['slide_text_position'], 'bottom');
-      $speed = _ddblock_get_variable($configuration_settings['speed'], 500);
-      $template = _ddblock_get_variable($configuration_settings['template'], 'none');
-      if ($template == 'custom') {
-        $custom_template = _ddblock_get_variable($configuration_settings['custom_template'], '');
+      // get cycle mapping settings
+      foreach (ddblock_get_cycle_mapping_settings('ddblock_cycle', $delta)->settings() as $key => $value) {
+        ${$key} = $value;
+        $mappings[$key]['target'] = $value['target'];
+        $mappings[$key]['source'] = $value['source'];
       }
-      $timeout = _ddblock_get_variable($configuration_settings['timeout'], 5000);
-      $widget = _ddblock_get_variable($configuration_settings['widget'], 'default');
-      $width = _ddblock_get_variable($configuration_settings['width'], 195);
 
       // set pager variable for javascript
-        $settings['ddblockCustomTemplate'] = array(
+      $settings['ddblockCustomTemplate'] = array(
         'pager' => $pager,
         'pagerPosition' => $pager_position,
       );
 
-      drupal_add_js($settings, 'setting');
+      drupal_add_js($settings, array('type' => 'setting', 'scope' => JS_DEFAULT));
 
       // hide fields when using advanced settings
       $extra = (!empty($advanced)) ? ' style="display:none"' : '';
@@ -1081,6 +917,10 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       $form['input_type'] = array(
         '#type' => 'hidden',
         '#value' => 'instance',
+      );
+
+      $form['#attached']['css'] = array(
+        drupal_get_path('module', 'ddblock') . '/css/ddblock_instance_admin.css',
       );
 
       // widget setting: Enable the dynamic display block setting for this block.
@@ -1100,7 +940,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#options' => $options,
         '#required' => TRUE,
         '#description' => t("Choose a way to display content."),
-        '#weight' => -11,
+        '#weight' => -12,
       );
 
       // advanced settings togg;e
@@ -1110,64 +950,113 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#default_value' => $advanced,
         '#required' => FALSE,
         '#description' => t("Use Custom templates and CSS (more flexible)"),
-        '#weight' => -10,
+        '#weight' => -11,
       );
 
-      // debug settings: Show debug info.
-      $options = array(
-        'none' => t('None'),
-        'drupal' => t('Using drupal_set_message'),
-      );
-      if (module_exists('devel')) {
-        $options['devel'] = t('Using devel module');
+      // select themes from [Theme_name]/custom/modules/ddblock
+      $path_to_themes =  _ddblock_get_theme_path() . '/custom/modules/ddblock';
+
+      $dirs = _ddblock_dir_scan_directory($path_to_themes, '');
+
+      $options = array();
+      if (!empty($dirs)) {
+        asort($dirs);
+        foreach ($dirs as $dir) {
+          $options[$dir] = $dir;
+        }
       }
-
-      // Select how to show debug info
-      $form['block_settings']['debug_info'] = array(
-        '#type' => 'select',
-        '#title' => t('Show debug info'),
-        '#default_value' => $debug_info,
-        '#options' => $options,
-        '#required' => FALSE,
-        '#description' => t("Show debug info to determine view name/display id, fieldnames, settings, number of items"),
-        '#weight' => -9,
-      );
-
-      $options = array(
-        'upright10' => 'Upright10',
-        'upright20' => 'Upright20',
-        'upright30' => 'Upright30',
-        'upright40' => 'Upright40',
-        'upright50' => 'Upright50',
-        'upright60' => 'Upright60',
-        'custom' => 'Custom',
-      );
 
       $form['block_settings']['template'] = array(
         '#type' => 'select',
-        '#title' => t('Template'),
+        '#title' => t('Slideshow theme layout'),
         '#default_value' => $template,
         '#options' => $options,
         '#multiple' => FALSE,
         '#required' => FALSE,
-        '#description' => t("Template for themable output. Template name will become:<br />ddblock-cycle-block-content-[TEMPLATENAME].tpl.php"),
-        '#weight' => -8,
+        '#prefix' => '<div id="ddblock-template-wrapper">',
+        '#suffix' => '</div>',
+        '#description' => t("Available slideshow themes are automatically detected form the folder custom/modules/ddblock.<br />
+        A slideshow themes can only contain letters and numbers, no underscores and hyphens, etc.<br />
+        The .tpl.php file used will become:ddblock-cycle-block-content--[THEMENAME].tpl.php"),
+        '#weight' => -10,
       );
 
-      // Custom template.
-      //show fields when using advanced settings
-      $extra = '';//(empty($advanced)) ? ' style="display:none"' : '';
-      // if the checkbox: Use advanced settings is not checked, hide the advanced settings
-      $form['block_settings']['custom_template'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Custom template'),
-        '#default_value' => $custom_template,
-        '#required' => FALSE,
-        '#prefix' => '<div id="ddblock-custom-template-settings-wrapper">',
-        '#suffix' => '</div>',
-        '#description' => t("Custom template for themable output. Template name will become: <br />ddblock-cycle-block-content-[TEMPLATENAME].tpl.php"),
-        '#weight' => -7,
+      if (isset($form_state['values'])) {
+        $form_state_values = $form_state['values'];
+      }
+
+      $template = (isset($form_state_values['block_settings']['template'])) ? $form_state_values['block_settings']['template'] : $template;
+
+      $template_sizes = _ddblock_get_template_size($template);
+
+      // Since a #select element can't have it's own #submit handler, we have to create an extra
+      // submit button to which we attach the correct callback function that's going to be called on a change
+      // We'll hide this with '#access' => FALSE.
+      $form['block_settings']['template_submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('get template sizes'),
+        '#submit' => array('ddblock_options_form_submit'),
+        '#weight' => -8,
+//  '#access'=> FALSE, // hide the button
+        '#description' => t('Get the possible themesizes after selecting a theme'),
       );
+
+      // We define a <div> wrapper that contains the select box that needs to be refilled with data
+      $form['block_settings']['template_size_wrapper'] = array(
+        '#prefix' => '<div id="select-template-size-wrapper">',
+        '#suffix' => '</div>',
+        '#weight' => -9,
+      );
+
+      // This is the actual select that needs to be refreshed depending on what happens in the 'template' select
+      $form['block_settings']['template_size_wrapper']['template_size'] = array(
+        '#type' => 'select',
+        '#title' => t('Template size'),
+        '#options' => $template_sizes,
+        '#default_value' =>  $template_size,
+        '#description' => t('The slideshow template_size css file to use'),
+//        '#attributes' => array('class' => 'template-size-select'),
+        '#prefix' => '<div id="select-template-size">',
+        '#suffix' => '</div>',
+      );
+
+
+      // Wrapper in which to place both the mapped fields and the 'add mapping' form.
+      $form['block_settings']['mapping_wrapper'] = array(
+        '#weight' => -7,
+        '#prefix' => '<div class="clear-block" id="ddblock-mapping-wrapper">',
+        '#suffix' => '</div>',
+      );
+
+      $form['block_settings']['mapping_wrapper']['helptext'] = array(
+        '#type' => 'item',
+        '#title' => t('Field mappings'),
+        '#description' => t('In this part you map available fields to ddblock theme fields.<br />The ddblock theme fields are the target.<br />Source fields are fields available from your view.'),
+      );
+
+      $form['block_settings']['mapping_wrapper']['headingtable'] = array(
+        '#type' => 'item',
+        '#title' => t('Target&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Source'),
+     );
+
+      // Wrapper to display existing mappingss.
+      $form['block_settings']['mapping_wrapper']['mappings'] = array(
+        '#prefix' => '<div id="ddblock-mappings">',
+        '#suffix' => '</div>',
+//        '#theme' => 'ddblock_mappings_table',
+      );
+
+      // Get number of mappings.
+      $options = array();
+      $mapping_count = empty($mappings) ? 0 : count($mappings);
+      // Add the existing mappings to the form.
+      for ($delta = 0; $delta < $mapping_count; $delta++) {
+        $target = isset($mappings[$delta]['target']) ? $mappings[$delta]['target'] : '';
+        $source = isset($mappings[$delta]['source']) ? $mappings[$delta]['source'] : '';
+        // Display existing mappings using helper function ddblock_mapping_display_form().
+        $form['block_settings']['mapping_wrapper']['mappings'][$delta] = ddblock_mapping_display_form($delta, $target, $source, $source_fields);
+      }
 
 
       if ($widget == 'default') {
@@ -1186,62 +1075,6 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#weight' => 1,
       );
 
-      // if image cache module exist make it possible to use image cache presets
-      if ((module_exists('imagecache')) and (imagecache_presets())) {
-        $imgcache_options = array('<none>' => '<none>');
-        // get imagecache presets using imagecache function
-        foreach (imagecache_presets() as $preset) {
-          $name = $preset['presetname'];
-          $imgcache_options[$name] = $name;
-        }
-        $imgcache_slide_desc = t("Imagecache preset to use for slide image");
-        $imgcache_pager_item_desc = t("Imagecache preset to use for pager-item image. Only for themes that use an image in the pager");
-
-       // Image cache toggle
-        $form['block_settings']['imgcache_toggle'] = array(
-          '#type' => 'checkbox',
-          '#title' => t('Use imagecache presets'),
-          '#default_value' => $imgcache_toggle,
-          '#required' => FALSE,
-          '#description' => t("Use imagecache presets for images"),
-          '#weight' => -5,
-        );
-
-        // Image cache settings.
-        $form['block_settings']['imgcache'] = array(
-          '#type' => 'fieldset',
-          '#collapsible' => TRUE,
-          '#title' => t('Image cache preset settings'),
-          '#prefix' => '<div id="ddblock-imgcache-settings-wrapper"'. $extra .'>',
-          '#suffix' => '</div>',
-          '#weight' => -4,
-        );
-
-        // Select image cache slide image
-        $form['block_settings']['imgcache']['imgcache_slide'] = array(
-          '#type' => 'select',
-          '#title' => t('Imagecache slide image'),
-          '#default_value' => $imgcache_slide,
-          '#options' => $imgcache_options,
-          '#multiple' => FALSE,
-          '#required' => FALSE,
-          '#description' => $imgcache_slide_desc,
-          '#weight' => 1,
-        );
-
-        // Select image cache pager image
-        $form['block_settings']['imgcache']['imgcache_pager_item'] = array(
-          '#type' => 'select',
-          '#title' => t('Imagecache pager-item image'),
-          '#default_value' => $imgcache_pager_item,
-          '#options' => $imgcache_options,
-          '#multiple' => FALSE,
-          '#required' => FALSE,
-          '#description' => $imgcache_pager_item_desc,
-          '#weight' => 2,
-        );
-      }
-
       // content container settings.
       $form['block_settings']['content_container'] = array(
         '#type' => 'fieldset',
@@ -1251,10 +1084,10 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#weight' => -3,
       );
 
-      $form['block_settings']['content_container']['container'] = array(
+      $form['block_settings']['content_container']['container_advanced'] = array(
         '#type' => 'textfield',
         '#title' => t('Content container'),
-        '#default_value' => $container,
+        '#default_value' => $container_advanced,
         '#required' => FALSE,
         '#size' => 30,
         '#description' => t("Container of the content to slide, eg. CSS selector img, to show images.<br />This can be any CSS selector containing a slide. e.g div.slide"),
@@ -1264,7 +1097,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'checkbox',
         '#title' => t('Overflow hidden'),
         '#default_value' => $overflow,
-        '#prefix' => '<div id="ddblock-advanced-content-container-overflow-wrapper"'. $extra .'>',
+        '#prefix' => '<div id="ddblock-advanced-content-container-overflow-wrapper"' . $extra . '>',
         '#suffix' => '</div>',
         '#required' => FALSE,
         '#description' => t("Hide the overflow of the container"),
@@ -1274,7 +1107,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'textfield',
         '#title' => t('Container height'),
         '#default_value' => $height,
-        '#prefix' => '<div id="ddblock-advanced-content-container-height-wrapper"'. $extra .'>',
+        '#prefix' => '<div id="ddblock-advanced-content-container-height-wrapper"' . $extra . '>',
         '#suffix' => '</div>',
         '#required' => FALSE,
         '#description' => t("Height of the content to show"),
@@ -1284,7 +1117,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'textfield',
         '#title' => t('Container width'),
         '#default_value' => $width,
-        '#prefix' => '<div id="ddblock-advanced-content-container-width-wrapper"'. $extra .'>',
+        '#prefix' => '<div id="ddblock-advanced-content-container-width-wrapper"' . $extra . '>',
         '#suffix' => '</div>',
         '#required' => FALSE,
         '#description' => t("Width of the content to show"),
@@ -1295,56 +1128,56 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'fieldset',
         '#collapsible' => TRUE,
         '#title' => t('Image settings'),
-        '#prefix' => '<div id="ddblock-image-settings-wrapper"'. $extra .'>',
+        '#prefix' => '<div id="ddblock-image-settings-wrapper"' . $extra . '>',
         '#suffix' => '</div>',
         '#weight' => -3,
       );
 
       $form['block_settings']['images']['image_height'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Image height'),
-      '#default_value' => $image_height,
-      '#required' => FALSE,
-      '#description' => t("Height of the image to show"),
+        '#type' => 'textfield',
+        '#title' => t('Image height'),
+        '#default_value' => $image_height,
+        '#required' => FALSE,
+        '#description' => t("Height of the image to show"),
       );
 
       $form['block_settings']['images']['image_width'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Image width'),
-      '#default_value' => $image_width,
-      '#required' => FALSE,
-      '#description' => t("Width of the image to show"),
+        '#type' => 'textfield',
+        '#title' => t('Image width'),
+        '#default_value' => $image_width,
+        '#required' => FALSE,
+        '#description' => t("Width of the image to show"),
       );
 
       $options = _ddblock_get_effects();
       $form['block_settings']['settings']['fx'] = array(
-      '#type' => 'select',
-      '#title' => t('Transition Effect'),
-      '#default_value' => $fx,
-      '#options' => $options,
-      '#multiple' => FALSE,
-      '#required' => TRUE,
-      '#description' => t("The transition effect between content.<br />(all for random effect per slide, none for no effect)<br />Multiple effects can be set in the Custom jQuery Cycle Plugin Settings."),
+        '#type' => 'select',
+        '#title' => t('Transition Effect'),
+        '#default_value' => $fx,
+        '#options' => $options,
+        '#multiple' => FALSE,
+        '#required' => TRUE,
+        '#description' => t("The transition effect between content.<br />(all for random effect per slide, none for no effect)<br />Multiple effects can be set in the Custom jQuery Cycle Plugin Settings."),
       );
 
       $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000));
       $form['block_settings']['settings']['speed'] = array(
-      '#type' => 'select',
-      '#title' => t('Speed'),
-      '#default_value' => $speed,
-      '#options' => $options,
-      '#required' => TRUE,
-      '#description' => t("Speed of the transitions (1000 = 1 second, 0 = direct)."),
+        '#type' => 'select',
+        '#title' => t('Speed'),
+        '#default_value' => $speed,
+        '#options' => $options,
+        '#required' => TRUE,
+        '#description' => t("Speed of the transitions (1000 = 1 second, 0 = direct)."),
       );
 
       $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000, 30000));
       $form['block_settings']['settings']['timeout'] = array(
-      '#type' => 'select',
-      '#title' => t('Timeout'),
-      '#default_value' => $timeout,
-      '#options' => $options,
-      '#required' => TRUE,
-      '#description' => t("The time (in milliseconds) between transitions (1000 = 1 second, 0 to disable auto advance)."),
+        '#type' => 'select',
+        '#title' => t('Timeout'),
+        '#default_value' => $timeout,
+        '#options' => $options,
+        '#required' => TRUE,
+        '#description' => t("The time (in milliseconds) between transitions (1000 = 1 second, 0 to disable auto advance)."),
       );
 
       $options = array(
@@ -1355,27 +1188,89 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       );
 
       $form['block_settings']['settings']['order'] = array(
-      '#type' => 'select',
-      '#title' => t('Sort Order'),
-      '#default_value' => $order,
-      '#options' => $options,
-      '#multiple' => FALSE,
-      '#required' => TRUE,
-      '#description' => t("The display order of the content. None for using the original content order."),
+        '#type' => 'select',
+        '#title' => t('Sort Order'),
+        '#default_value' => $order,
+        '#options' => $options,
+        '#multiple' => FALSE,
+        '#required' => TRUE,
+        '#description' => t("The display order of the content. None for using the original content order."),
       );
 
       $form['block_settings']['settings']['pause'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Pause'),
-      '#default_value' => $pause,
-      '#description' => t("Enable users to pause the cycle by hovering on the content."),
+        '#type' => 'checkbox',
+        '#title' => t('Pause'),
+        '#default_value' => $pause,
+        '#description' => t("Enable users to pause the cycle by hovering on the content of the slideshow."),
       );
 
       $form['block_settings']['settings']['next'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Next'),
-      '#default_value' => $next,
-      '#description' => t("Enable users to advanced to the next content by clicking on the content."),
+        '#type' => 'checkbox',
+        '#title' => t('Next'),
+        '#default_value' => $next,
+        '#description' => t("Enable users to advanced to the next content by clicking on the content.<br />
+                             Note: When readmore button is used, don't enable this option."),
+      );
+
+      $form['block_settings']['settings']['pager2'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Prev/Next Pager'),
+        '#default_value' => $pager2,
+        '#required' => FALSE,
+        '#description' => t("Add a previous/next pager."),
+      );
+
+      // pager settings.
+      // show fields when using pager
+      $extra = (empty($pager2)) ? ' style="display:none"' : '';
+      $form['block_settings']['settings']['pager2_settings'] = array(
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+        '#prefix' => '<div id="ddblock-pager2-settings-wrapper"' . $extra . '>',
+        '#suffix' => '</div>',
+        '#title' => t('Prev/next pager settings'),
+      );
+
+      $options = array(
+        'click' => t('Click'),
+        'mouseover' => t('Mouseover'),
+      );
+
+      $form['block_settings']['settings']['pager2_settings']['pager2_event'] = array(
+        '#type' => 'select',
+        '#title' => t('Pager event'),
+        '#default_value' => $pager2_event,
+        '#options' => $options,
+        '#required' => FALSE,
+        '#description' => t("The event on which the prev/next pager reacts."),
+      );
+
+      $form['block_settings']['settings']['pager2_settings']['pager2_slide_prev'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Prev text on slide'),
+        '#default_value' => $pager2_slide_prev,
+        '#size' => 30,
+        '#required' => FALSE,
+        '#description' => t("Caption for the prev pager on the slide.<br />Can also be empty if you use a background image to go to the previous slide."),
+      );
+
+      $form['block_settings']['settings']['pager2_settings']['pager2_slide_next'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Next text on slide'),
+        '#default_value' => $pager2_slide_next,
+        '#size' => 30,
+        '#required' => FALSE,
+        '#description' => t("Caption for the next pager on the slide.<br />Can also be empty if you use a background image to go to the next slide."),
+      );
+
+      // hide prev/next pager when no prev/next slide available
+      $form['block_settings']['settings']['pager2_settings']['pager2_slide']['pager2_slide_hide'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Prev/Next Hide'),
+        '#default_value' => $pager2_slide_hide,
+        '#required' => FALSE,
+        '#description' => t("Hide Prev/Next Pager when no slide available."),
       );
 
       // pager settings togg;e
@@ -1394,13 +1289,13 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'fieldset',
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
-        '#prefix' => '<div id="ddblock-pager-settings-wrapper"'. $extra .'>',
+        '#prefix' => '<div id="ddblock-pager-settings-wrapper"' . $extra . '>',
         '#suffix' => '</div>',
         '#title' => t('Pager settings'),
       );
 
       $options = array(
-        'none'            => t('None'),
+        'none' => t('None'),
         'number-pager' => t('Number pager'),
         'prev-next-pager' => t('Prev next pager'),
         'custom-pager' => t('Custom pager'),
@@ -1416,19 +1311,12 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#description' => t("Type of pager to add."),
       );
 
-      $form['block_settings']['settings']['pager_settings']['pager_container'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Pager container'),
-        '#default_value' => $pager_container,
-        '#required' => FALSE,
-        '#size' => 30,
-        '#description' => t("Container of a pager-item, eg. CSS selector li.<br />This can be any CSS selector containing a pager-item. e.g .custom-pager-item"),
-      );
-
       $form['block_settings']['settings']['pager_settings']['pager_height'] = array(
         '#type' => 'textfield',
         '#title' => t('Height'),
         '#default_value' => $pager_height,
+        '#prefix' => '<div id="ddblock-pager-height-wrapper"' . $extra . '>',
+        '#suffix' => '</div>',
         '#required' => FALSE,
         '#description' => t("Height of the pager"),
       );
@@ -1437,6 +1325,8 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'textfield',
         '#title' => t('Width'),
         '#default_value' => $pager_width,
+        '#prefix' => '<div id="ddblock-pager-width-wrapper"' . $extra . '>',
+        '#suffix' => '</div>',
         '#required' => FALSE,
         '#description' => t("Width of the pager"),
       );
@@ -1446,22 +1336,21 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         'right' => t('Right'),
         'bottom' => t('Bottom'),
         'left' => t('Left'),
-        'both' => t('Both'),
       );
 
       //show fields when using advanced settings
       $extra = (empty($advanced)) ? ' style="display:none"' : '';
       // if the checkbox: Use advanced settings is not checked, hide the advanced settings
       $form['block_settings']['settings']['pager_settings']['pager_position'] = array(
-      '#type' => 'select',
-      '#title' => t('Pager position'),
-      '#default_value' => $pager_position,
-      '#prefix' => '<div id="ddblock-pager-position-wrapper"'. $extra .'>',
-      '#suffix' => '</div>',
-      '#options' => $options,
-      '#required' => FALSE,
-      '#description' => t("Possible position for the pager.<br />The position must be supported by the template used to be effective."),
-      );
+        '#type' => 'select',
+        '#title' => t('Pager position'),
+        '#default_value' => $pager_position,
+        '#prefix' => '<div id="ddblock-pager-position-wrapper"' . $extra . '>',
+        '#suffix' => '</div>',
+        '#options' => $options,
+        '#required' => FALSE,
+        '#description' => t("Possible position for the pager.<br />The position must be supported by the template used to be effective."),
+        );
 
       $options = array(
         'click' => t('Click'),
@@ -1471,14 +1360,28 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       $extra = (empty($advanced)) ? ' style="display:none"' : '';
       // if the checkbox: Use advanced settings is not checked, hide the advanced settings
       $form['block_settings']['settings']['pager_settings']['pager_event'] = array(
-      '#type' => 'select',
-      '#title' => t('Pager event'),
-      '#default_value' => $pager_event,
-      '#prefix' => '<div id="ddblock-pager-event-wrapper"'. $extra .'>',
-      '#suffix' => '</div>',
-      '#options' => $options,
-      '#required' => FALSE,
-      '#description' => t("The event on which the pager reacts."),
+        '#type' => 'select',
+        '#title' => t('Pager event'),
+        '#default_value' => $pager_event,
+        '#prefix' => '<div id="ddblock-pager-event-wrapper"' . $extra . '>',
+        '#suffix' => '</div>',
+        '#options' => $options,
+        '#required' => FALSE,
+        '#description' => t("The event on which the pager reacts."),
+      );
+
+      // disable click if pager is mouseover
+      //show fields when using advanced settings
+      $extra = (empty($advanced)) ? ' style="display:none"' : '';
+      // if the checkbox: Use advanced settings is not checked, hide the advanced settings
+      $form['block_settings']['settings']['pager_settings']['pager_disable_click'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Disable Pager click'),
+        '#default_value' => $pager_disable_click,
+        '#prefix' => '<div id="ddblock-pager-disable-click-wrapper"' . $extra . '>',
+        '#suffix' => '</div>',
+        '#required' => FALSE,
+        '#description' => t("Disable pager click when pager event is mouseover."),
       );
 
       //show fields when using advanced settings
@@ -1488,10 +1391,11 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'checkbox',
         '#title' => t('Fast Pager'),
         '#default_value' => $pager_fast,
-        '#prefix' => '<div id="ddblock-pager-fast-wrapper"'. $extra .'>',
+        '#prefix' => '<div id="ddblock-pager-fast-wrapper"' . $extra . '>',
         '#suffix' => '</div>',
         '#required' => FALSE,
-        '#description' => t("Use fast pager event when clicked or hovered."),
+        '#description' => t("When pager is used to go to another slide, don't use the effect to go to the slide.<br />
+                            Use for quick selection of slides."),
       );
 
       //show fields when using advanced settings
@@ -1501,171 +1405,58 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'checkbox',
         '#title' => t('Pager pause'),
         '#default_value' => $pager_pause,
-        '#prefix' => '<div id="ddblock-pager-pause-wrapper"'. $extra .'>',
+        '#prefix' => '<div id="ddblock-pager-pause-wrapper"' . $extra . '>',
         '#suffix' => '</div>',
         '#required' => FALSE,
-        '#description' => t("Pause the slideshow when pager hovered."),
+        '#description' => t("Pause the slideshow when the mouse is on the pager."),
       );
 
-      // pager2 settings togg;e
-      $form['block_settings']['settings']['pager2'] = array(
+      // prev_next_pager_loop - Only show prev if previous slide exist - Only show next if next slide exist
+      //show fields when using advanced settings
+      $extra = (empty($advanced)) ? ' style="display:none"' : '';
+      // if the checkbox: Use advanced settings is not checked, hide the advanced settings
+      $form['block_settings']['settings']['pager_settings']['pager_prev_next_loop'] = array(
         '#type' => 'checkbox',
-        '#title' => t('Use Prev/Next Pager'),
-        '#default_value' => $pager2,
+        '#title' => t('Prev/next Pager loop'),
+        '#default_value' => $pager_prev_next_loop,
+        '#prefix' => '<div id="ddblock-pager-prev-next-loop-wrapper"' . $extra . '>',
+        '#suffix' => '</div>',
         '#required' => FALSE,
-        '#description' => t("Use a Prev/Next Pager to select slides"),
+        '#description' => t("Loop the next/prev pager. If disabled:<br />- Only show prev if previous slide exist<br />- Only show next if next slide exist"),
       );
 
-      // pager2 settings.
-      //show fields when using pager
-      $extra = (empty($pager2)) ? ' style="display:none"' : '';
-      $form['block_settings']['settings']['pager2_settings'] = array(
-        '#type' => 'fieldset',
-        '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
-        '#prefix' => '<div id="ddblock-pager2-settings-wrapper"'. $extra .'>',
-        '#suffix' => '</div>',
-        '#title' => t('Prev/next pager settings'),
-      );
-
+      // scrollable_pager_loop - Only show prev if previous slide exist - Only show next if next slide exist
       //show fields when using advanced settings
       $extra = (empty($advanced)) ? ' style="display:none"' : '';
       // if the checkbox: Use advanced settings is not checked, hide the advanced settings
-      $form['block_settings']['settings']['pager2_settings']['pager2_event'] = array(
-        '#type' => 'select',
-        '#title' => t('Pager event'),
-        '#default_value' => $pager2_event,
-        '#prefix' => '<div id="ddblock-pager2-slide-event-wrapper"'. $extra .'>',
-        '#suffix' => '</div>',
-        '#options' => $options,
-        '#required' => FALSE,
-        '#description' => t("The event on which the prev/next pager reacts."),
-      );
-
-      $options = array(
-        'pager' => t('Pager'),
-        'slide' => t('Slide'),
-      );
-
-      //show fields when using advanced settings
-      $extra = (empty($advanced)) ? ' style="display:none"' : '';
-      // if the checkbox: Use advanced settings is not checked, hide the advanced settings
-      $form['block_settings']['settings']['pager2_settings']['pager2_position'] = array(
-      '#type' => 'checkboxes',
-      '#title' => t('Pager position'),
-      '#default_value' => $pager2_position,
-      '#prefix' => '<div id="ddblock-pager2-position-wrapper"'. $extra .'>',
-      '#suffix' => '</div>',
-      '#options' => $options,
-      '#multiple' => TRUE,
-      '#required' => FALSE,
-      '#description' => t("Possible position for the prev/next pager.<br />The position must be supported by the template used to be effective."),
-      );
-
-
-      // pager2 settings pager.
-      //show fields when using pager pager
-      $extra = (empty($pager2)) ? ' style="display:none"' : '';
-      $form['block_settings']['settings']['pager2_settings']['pager2_pager'] = array(
-        '#type' => 'fieldset',
-        '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
-        '#prefix' => '<div id="ddblock-pager2-pager-settings-wrapper"'. $extra .'>',
-        '#suffix' => '</div>',
-        '#title' => t('Pager Pager'),
-      );
-
-
-      //show fields when using advanced settings
-      $extra = (empty($advanced)) ? ' style="display:none"' : '';
-      // if the checkbox: Use advanced settings is not checked, hide the advanced settings
-      $form['block_settings']['settings']['pager2_settings']['pager2_pager']['pager2_pager_prev'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Prev text in pager'),
-      '#default_value' => $pager2_pager_prev,
-      '#prefix' => '<div id="ddblock-pager2-pager-prev-text-wrapper"'. $extra .'>',
-      '#size' => 30,
-      '#suffix' => '</div>',
-      '#required' => FALSE,
-      '#description' => t("Caption for the prev pager in the pager.<br />Can also be empty if you use an image to go to the previous slide."),
-      );
-
-      //show fields when using advanced settings
-      $extra = (empty($advanced)) ? ' style="display:none"' : '';
-      // if the checkbox: Use advanced settings is not checked, hide the advanced settings
-      $form['block_settings']['settings']['pager2_settings']['pager2_pager']['pager2_pager_next'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Next text in pager'),
-      '#default_value' => $pager2_pager_next,
-      '#prefix' => '<div id="ddblock-pager2-pager-next-text-wrapper"'. $extra .'>',
-      '#size' => 30,
-      '#suffix' => '</div>',
-      '#required' => FALSE,
-      '#description' => t("Caption for the next pager in the pager.<br />Can also be empty if you use an image to go to the next slide."),
-      );
-
-      // hide prev/next pager when no prev/next slide available
-      $form['block_settings']['settings']['pager2_settings']['pager2_pager']['pager2_pager_hide'] = array(
+      $form['block_settings']['settings']['pager_settings']['pager_scrollable_loop'] = array(
         '#type' => 'checkbox',
-        '#title' => t('Prev/Next Hide'),
-        '#default_value' => $pager2_pager_hide,
-        '#required' => FALSE,
-        '#description' => t("Hide Prev/Next Pager when no slide available."),
-      );
-
-      // pager2 settings slide.
-      //show fields when using slide pager
-      $extra = (empty($pager2)) ? ' style="display:none"' : '';
-      $form['block_settings']['settings']['pager2_settings']['pager2_slide'] = array(
-        '#type' => 'fieldset',
-        '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
-        '#prefix' => '<div id="ddblock-pager2-slide-settings-wrapper"'. $extra .'>',
+        '#title' => t('Scrollable Pager show'),
+        '#default_value' => $pager_scrollable_loop,
+        '#prefix' => '<div id="ddblock-pager-scrollable-loop-wrapper"' . $extra . '>',
         '#suffix' => '</div>',
-        '#title' => t('Slide Pager'),
-      );
-
-
-      $options = array(
-        'click' => t('Click'),
-        'mouseover' => t('Mouseover'),
-      );
-
-      //show fields when using advanced settings
-      $extra = (empty($advanced)) ? ' style="display:none"' : '';
-      // if the checkbox: Use advanced settings is not checked, hide the advanced settings
-      $form['block_settings']['settings']['pager2_settings']['pager2_slide']['pager2_slide_prev'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Prev text on slide'),
-      '#default_value' => $pager2_slide_prev,
-      '#prefix' => '<div id="ddblock-pager2-slide-prev-text-wrapper"'. $extra .'>',
-      '#size' => 30,
-      '#suffix' => '</div>',
-      '#required' => FALSE,
-      '#description' => t("Caption for the prev pager on the slide.<br />Can also be empty if you use an image to go to the previous slide."),
-      );
-
-      //show fields when using advanced settings
-      $extra = (empty($advanced)) ? ' style="display:none"' : '';
-      // if the checkbox: Use advanced settings is not checked, hide the advanced settings
-      $form['block_settings']['settings']['pager2_settings']['pager2_slide']['pager2_slide_next'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Next text on slide'),
-      '#default_value' => $pager2_slide_next,
-      '#prefix' => '<div id="ddblock-pager2-slide-next-text-wrapper"'. $extra .'>',
-      '#size' => 30,
-      '#suffix' => '</div>',
-      '#required' => FALSE,
-      '#description' => t("Caption for the next pager on the slide.<br />Can also be empty if you use an image to go to the next slide."),
-      );
-
-      // hide prev/next pager when no prev/next slide available
-      $form['block_settings']['settings']['pager2_settings']['pager2_slide']['pager2_slide_hide'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Prev/Next Hide'),
-        '#default_value' => $pager2_slide_hide,
         '#required' => FALSE,
-        '#description' => t("Hide Prev/Next Pager when no slide available."),
+        '#description' => t("Always show navigation items for scrollable pager. If disabled:<br />- Only show prev pager item when previous slide exist<br />- Only show next pager item when next slide exist"),
+      );
+
+      $form['block_settings']['settings']['pager_settings']['nr_of_pager_items'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Nr of pager items'),
+        '#default_value' => $nr_of_pager_items,
+        '#prefix' => '<div id="ddblock-nr-of-pager-items-wrapper">',
+        '#suffix' => '</div>',
+        '#required' => FALSE,
+        '#size' => 30,
+        '#description' => t("Number of pager items visible at one time in the scrollable pager.<br />This setting will rule the functionality of the pager."),
+      );
+
+      $form['block_settings']['settings']['pager_settings']['pager_container'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Pager container'),
+        '#default_value' => $pager_container,
+        '#required' => FALSE,
+        '#size' => 30,
+        '#description' => t("Container of a pager-item, eg. CSS selector li.<br />This can be any CSS selector containing a pager-item. e.g .custom-pager-item<br />Most of the time this can be left at the default value."),
       );
 
       $form['block_settings']['settings']['slide_text'] = array(
@@ -1682,7 +1473,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'fieldset',
         '#collapsible' => TRUE,
         '#title' => t('Slide text settings'),
-        '#prefix' => '<div id="ddblock-slide-text-settings-wrapper"'. $extra .'>',
+        '#prefix' => '<div id="ddblock-slide-text-settings-wrapper"' . $extra . '>',
         '#suffix' => '</div>',
       );
 
@@ -1692,8 +1483,9 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#title' => t('Slide text container'),
         '#default_value' => $slide_text_container,
         '#required' => FALSE,
-        '#description' => t("Container of the slide text."),
-        '#weight' => 4,
+        '#size' => 30,
+        '#description' => t("Container of the slide text. Most of the time, can be left at default"),
+        '#weight' => 5,
       );
 
       $options = array(
@@ -1711,7 +1503,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#multiple' => FALSE,
         '#required' => FALSE,
         '#description' => t("Position of the slide text."),
-        '#weight' => 5,
+        '#weight' => 4,
       );
 
       $form['block_settings']['settings']['slide_text_settings']['slide_text_jquery'] = array(
@@ -1730,7 +1522,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'fieldset',
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
-        '#prefix' => '<div id="ddblock-slide-jquery-settings-wrapper"'. $extra .'>',
+        '#prefix' => '<div id="ddblock-slide-jquery-settings-wrapper"' . $extra . '>',
         '#suffix' => '</div>',
         '#title' => t('Slide text jquery settings'),
         '#weight' => 7,
@@ -1781,13 +1573,12 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
 
       $form['block_settings']['settings']['slide_text_settings']['slide_jquery']['slide_text_after_speed'] = array(
         '#type' => 'select',
-        '#title' => t('Speed after effect '),
+        '#title' => t('Speed after effect'),
         '#default_value' => $slide_text_after_speed,
         '#options' => $speed_options,
         '#required' => FALSE,
         '#description' => t("Speed of the before effect (1000 = 1 second, 0 = direct)."),
       );
-
 
       if ($custom_jquery) {
         $collapsed = FALSE;
@@ -1796,30 +1587,29 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         $collapsed = TRUE;
       }
       $form['block_settings']['settings']['custom'] = array(
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#collapsed' => $collapsed,
-      '#title' => t('Custom jQuery Cycle Plugin Settings'),
-      '#description' => t('If you use custom jQuery options, they will override your other settings.'),
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => $collapsed,
+        '#title' => t('Custom jQuery Cycle Plugin Settings'),
+        '#description' => t('If you use custom jQuery options, they will override your other settings.'),
       );
 
       $form['block_settings']['settings']['custom']['custom_jquery'] = array(
-      '#type' => 'textarea',
-      '#title' => t('Custom Options'),
-      '#default_value' => $custom_jquery,
-      '#cols' => 60,
-      '#rows' => 10,
-      '#required' => FALSE,
-      '#description' => t('Use valid JSON syntax, with double quotes for key/and string value pairs.<br />The total script needs to be enclosed in curly brackets.<br />No comma allowed after the last statement like in an array.<br />e.g.<br />{"fx":"fade",<br />"startingSlide":2,<br />"autostop":1}'),
+        '#type' => 'textarea',
+        '#title' => t('Custom Options'),
+        '#default_value' => $custom_jquery,
+        '#cols' => 60,
+        '#rows' => 10,
+        '#required' => FALSE,
+        '#description' => t('Use valid JSON syntax, with double quotes for key/and string value pairs.<br />The total script needs to be enclosed in curly brackets.<br />No comma allowed after the last statement like in an array.<br />e.g.<br />{"fx":"fade",<br />"startingSlide":2,<br />"autostop":1}'),
       );
 
-
-      $form['#redirect'] = 'admin/settings/ddblock/list';
+      $form_state['redirect'] = 'admin/structure/ddblock/list';
 
       $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Submit'),
-      '#submit' => array('ddblock_form_alter_submit'),
+        '#type' => 'submit',
+        '#value' => t('Submit'),
+        '#submit' => array('ddblock_form_alter_submit'),
       );
     }
   }
@@ -1858,94 +1648,32 @@ function ddblock_subject($origin, $delta) {
  * Get contents of dynamic display block block.
  */
 function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
-  // get settings.
-  $configuration_settings = ddblock_get_configuration_settings($origin, $delta);
 
-  // To Do
-  // Get settings per widget
-  $advanced =_ddblock_get_variable($configuration_settings['advanced'], 0);
-  if ($advanced) {
-    $container = _ddblock_get_variable($configuration_settings['container'], 'div.slide');
-    $pager_container = _ddblock_get_variable($configuration_settings['pager_container'], 'custom-pager-item');
+  // get configuration settings
+  foreach (ddblock_get_configuration_settings('ddblock', $delta)->settings() as $key => $value) {
+    ${$key} = $value;
   }
-  else {
-    $container = _ddblock_get_variable($configuration_settings['container'], 'img');
-    $pager_container = _ddblock_get_variable($configuration_settings['pager_container'], 'pager-item');
+  // get configuration settings
+  foreach (ddblock_get_cycle_configuration_settings('ddblock_cycle', $delta)->settings() as $key => $value) {
+    ${$key} = $value;
   }
-  $content_type = _ddblock_get_variable($configuration_settings['content_type'], 'none');
-  $debug_info = _ddblock_get_variable($configuration_settings['debug_info'], 'none');
-  $custom_jquery = _ddblock_get_variable($configuration_settings['custom_jquery'], '');
-  $fx = _ddblock_get_variable($configuration_settings['fx'], "fade");
-  $height = _ddblock_get_variable($configuration_settings['height'], 195);
-  $image_height = _ddblock_get_variable($configuration_settings['image_height'], 183);
-  $image_width = _ddblock_get_variable($configuration_settings['image_width'], 183);
-  $imgcache_toggle = _ddblock_get_variable($configuration_settings['imgcache_toggle'], 0);
-  $imgcache_slide = _ddblock_get_variable($configuration_settings['imgcache_slide'], '<none>');
-  $imgcache_pager_item = _ddblock_get_variable($configuration_settings['imgcache_pager_item'], '<none>');
-  $image_container_height = $image_height+12;
-  $image_container_width = $image_width+12;
-  $input_type = _ddblock_get_variable($configuration_settings['input_type'], 'images');
-  $next = _ddblock_get_variable($configuration_settings['next'], 0);
-  $nodes = _ddblock_get_variable($configuration_settings['nodes'], '');
-  $node_body_teaser = _ddblock_get_variable($configuration_settings['node_body_teaser'], 'body');
-  $order = _ddblock_get_variable($configuration_settings['order'], 'asc');
-  $output = _ddblock_get_variable($configuration_settings['output'], 'view_content');
-  $overflow = _ddblock_get_variable($configuration_settings['overflow'], 1);
+
   if (!empty($overflow)) {
     $overflow = 'hidden';
   }
   else {
     $overflow = 'visible';
   }
-  $pause = _ddblock_get_variable($configuration_settings['pause'], 1);
-  $pager_toggle = _ddblock_get_variable($configuration_settings['pager_toggle'], 0);
-  $pager = _ddblock_get_variable($configuration_settings['pager'], 'none');
-  $pager_event = _ddblock_get_variable($configuration_settings['pager_event'], 'click');
-  $pager2 = _ddblock_get_variable($configuration_settings['pager2'], 0);
-  $pager2_event = _ddblock_get_variable($configuration_settings['pager2_event'], 'click');
-  $pager2_slide_next = _ddblock_get_variable($configuration_settings['pager2_slide_next'], '');
-  $pager2_slide_prev = _ddblock_get_variable($configuration_settings['pager2_slide_prev'], '');
-  $pager2_slide_hide = _ddblock_get_variable($configuration_settings['pager2_slide_hide'], 1);
-  $pager2_pager_next = _ddblock_get_variable($configuration_settings['pager2_pager_next'], '');
-  $pager2_pager_prev = _ddblock_get_variable($configuration_settings['pager2_pager_prev'], '');
-  $pager2_pager_hide = _ddblock_get_variable($configuration_settings['pager2_pager_hide'], 1);
-  $pager2_position = _ddblock_get_variable($configuration_settings['pager2_position'], 'slide');
-  $pager_fast = _ddblock_get_variable($configuration_settings['pager_fast'], 1);
-  $pager_pause = _ddblock_get_variable($configuration_settings['pager_pause'], 1);
-  if (($pager == 'number-pager') || ($pager2 == 1)) {
-   $pager_height = _ddblock_get_variable($configuration_settings['pager_height'], 25);
-    $pager_width = _ddblock_get_variable($configuration_settings['pager_width'], 195);
-  }
-  else {
-    $pager_height = _ddblock_get_variable($configuration_settings['pager_height'], 63);
-    $pager_width = _ddblock_get_variable($configuration_settings['pager_width'], 195);
-  }
-  $pager_position = _ddblock_get_variable($configuration_settings['pager_position'], 'top');
-  $slide_text = _ddblock_get_variable($configuration_settings['slide_text'], 1);
-  $slide_text_jquery = _ddblock_get_variable($configuration_settings['slide_text_jquery'], 0);
-  $slide_text_after_effect = _ddblock_get_variable($configuration_settings['slide_text_after_effect'], 'fadeIn');
-  $slide_text_after_speed = _ddblock_get_variable($configuration_settings['slide_text_after_speed'], 1000);
-  $slide_text_before_effect = _ddblock_get_variable($configuration_settings['slide_text_before_effect'], 'fadeOut');
-  $slide_text_before_speed = _ddblock_get_variable($configuration_settings['slide_text_before_speed'], 250);
-  $slide_text_container = _ddblock_get_variable($configuration_settings['slide_text_container'], 'div.slide-text');
-  $slide_text_position =_ddblock_get_variable($configuration_settings['slide_text_position'], 'bottom');
-  $speed = _ddblock_get_variable($configuration_settings['speed'], 500);
-  $template = _ddblock_get_variable($configuration_settings['template'], 'none');
-  if ($template == 'custom') {
-    $custom_template = _ddblock_get_variable($configuration_settings['custom_template'], '');
-  }
-  $timeout = _ddblock_get_variable($configuration_settings['timeout'], 5000);
-  $widget = _ddblock_get_variable($configuration_settings['widget'], 'default');
-  $width = _ddblock_get_variable($configuration_settings['width'], 195);
-//  dsm($configuration_settings);
 
+  $container = $container_advanced;
   if ($template == 'none') {
+    $container = $container_basic;
     // set imagecontainer height and width with jQuery
     $settings['ddblockImageContainer'][$delta] = array(
       'block' => $delta,
       'contentContainer' => $container,
-      'imageContainerHeight' => $image_container_height,
-      'imageContainerWidth' => $image_container_width,
+      'imageContainerHeight' => $height,
+      'imageContainerWidth' => $width,
       'setDimensions' => $template,
     );
 
@@ -1958,42 +1686,6 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
       'setDimensions' => $template,
     );
   }
-  // set jquery cycle settings
-  $settings['ddblockContent'][$delta] = array(
-    'block' => $delta,
-    'setDimensions' => $template,
-    'contentContainer' => $container,
-    'custom' => $custom_jquery,
-    'fx' => $fx,
-    'speed' => $speed,
-    'timeOut' => $timeout,
-    'pause' => $pause,
-    'next' => $next,
-    'overflow' => $overflow,
-    'pager' => $pager,
-    'pagerContainer' => $pager_container,
-    'pagerEvent' => $pager_event,
-    'pagerFast' => $pager_fast,
-    'pagerPause' => $pager_pause,
-    'pager2' => $pager2,
-    'pager2Event' => $pager2_event,
-    'pager2PagerHide' => $pager2_pager_hide,
-    'pager2SlideHide' => $pager2_slide_hide,
-    'slideText' => $slide_text,
-    'slideTextjQuery' => $slide_text_jquery,
-    'slideTextPosition' => $slide_text_position,
-    'slideTextContainer' => $slide_text_container,
-    'slideTextEffectBefore' => $slide_text_before_effect,
-    'slideTextEffectBeforeSpeed' => $slide_text_before_speed,
-    'slideTextEffectAfter' => $slide_text_after_effect,
-    'slideTextEffectAfterSpeed' => $slide_text_after_speed,
-
-    'height' => $height,
-    'width' => $width,
-  );
-
-  ddblock_init_js_css();
-  drupal_add_js($settings, 'setting');
 
   // get module path to dynamic display block module
   $ddblock_path = drupal_get_path('module', 'ddblock');
@@ -2001,18 +1693,29 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
   // get original block settings.
   $ddblock = ddblock_get_blocks($delta);
   $delta_original = $ddblock->delta_original;
+
   $module_original = $ddblock->module;
   $ddblock_enabled = $ddblock->enabled;
+  $view_name = '';
+  $display_id = '';
 
   if ($ddblock_enabled) {
     // get content from other blocks.
-    $block = module_invoke($module_original, 'block', 'view', $delta_original);
+    $block = module_invoke($module_original, 'block_view', $delta_original);
+
     if ($widget == 'default') {
       return ($block['content']);
     }
     else {
       if ($module_original == 'views') {
         if ($output == 'view_fields' ) {
+
+          foreach (ddblock_get_cycle_mapping_settings('ddblock_cycle', $delta)->settings() as $key => $value) {
+            ${$key} = $value;
+            $mappings[$key]['target'] = $value['target'];
+            $mappings[$key]['source'] = $value['source'];
+          }
+
           $output_type = 'view_fields';
           // block.module has a delta length limit of 32, but deltas in the views module can
           // be longer because view names can be 32 and display IDs can also be 32.
@@ -2023,25 +1726,49 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
               $delta_original = $hashes[$delta_original];
             }
           }
-          list($name, $display_id) = explode('-', $delta_original);
+          list($view_name, $display_id) = explode('-', $delta_original);
+
+
           // Load the view
-          if ($view = views_get_view($name)) {
+          if ($view = views_get_view($view_name)) {
             if ($view->access($display_id)) {
-              $view->preview($display_id);
-              $content=$view->result;
+            $view->preview($display_id);
+            $content = $view->result;
+
+            // Remove empty mappings
+              foreach ($mappings as $key => $value) {
+                if (empty($value['target'])) {
+                  unset($mappings[$key]);
+                }
+              }
+
+            // create result array
+              foreach ($view->result as $row_num => $result) {
+                foreach ($view->field as $id => $field) {
+                  $field_output = $view->style_plugin->get_field($row_num, $id);
+                  foreach ($mappings as $mapping_key => $mapping_value) {
+                    if ($mapping_value['source'] == $id) {
+                      $mapping_target=$mapping_value['target'];
+                      $result_rows[$row_num][$mapping_target] = $field_output;
+                    }
+                  }
+                }
+              }
+
+              $content = $result_rows;
               if (!empty($content)) {
                 switch ($order) {
-                 case 'random':
-                   shuffle($content);
-                   break;
-                 case 'asc' :
-                   asort($content);
-                   break;
-                 case 'desc':
-                   rsort($content);
-                   break;
-                 case 'none':
-                   break;
+                  case 'random':
+                    shuffle($content);
+                    break;
+                  case 'asc':
+                    asort($content);
+                    break;
+                  case 'desc':
+                    rsort($content);
+                    break;
+                  case 'none':
+                    break;
                 }
               }
             }
@@ -2057,96 +1784,140 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
         $output_type = 'view_content';
         $content = $block['content'];
       }
+      $nr_of_items = count($content);
     }
   }
   else {
     if ($input_type <> 'images') {
       $output_type = 'content_array';
       $content = _ddblock_get_content_array($content_type, $nodes, $node_body_teaser);
+      $nr_of_items = 2;
     }
     else {
       // get content from image folderimages.
       $output_type = 'images';
-      $imagepath = check_plain(_ddblock_get_variable(
-                                 file_directory_path() . '/' . $configuration_settings['folder'],
-                                 file_directory_path()
-                              ));
-
-      $max_image = _ddblock_get_variable($configuration_settings['max_image'], 5);
-      $ignore_files = _ddblock_get_variable($configuration_settings['ignore_files'], '');
-
-      $content = _ddblock_get_image_array($imagepath, $order, $max_image, $ignore_files);
+      $imagepath = check_plain(file_default_scheme() . ':/' .
+                               '/' .
+                              $folder,
+                               file_default_scheme() . ':/');
+      $content = _ddblock_get_image_array($imagepath, $order, $max_image, $ignore_files, $image_style_slide, $image_style_pager_item);
+      $nr_of_items = count($content);
     }
   }
+
+  // set jquery cycle settings
+  $settings['ddblockContent'][$delta] = array(
+    'block' => $delta,
+    'nrOfItems' => $nr_of_items,
+    'setDimensions' => $template,
+    'contentContainer' => $container,
+    'custom' => $custom_jquery,
+    'fx' => $fx,
+    'speed' => $speed,
+    'timeOut' => $timeout,
+    'pause' => $pause,
+    'next' => $next,
+    'overflow' => $overflow,
+    'pager' => $pager,
+    'pagerPrevNextLoop' => $pager_prev_next_loop,
+    'pagerScrollableLoop' => $pager_scrollable_loop,
+    'nrOfPagerItems' => $nr_of_pager_items,
+    'pagerContainer' => $pager_container,
+    'pagerEvent' => $pager_event,
+    'pagerDisableClick' => $pager_disable_click,
+    'pagerFast' => $pager_fast,
+    'pagerPause' => $pager_pause,
+    'pager2' => $pager2,
+    'pager2Event' => $pager2_event,
+    'pager2SlideHide' => $pager2_slide_hide,
+    'slideText' => $slide_text,
+    'slideTextjQuery' => $slide_text_jquery,
+    'slideTextPosition' => $slide_text_position,
+    'slideTextContainer' => $slide_text_container,
+    'slideTextEffectBefore' => $slide_text_before_effect,
+    'slideTextEffectBeforeSpeed' => $slide_text_before_speed,
+    'slideTextEffectAfter' => $slide_text_after_effect,
+    'slideTextEffectAfterSpeed' => $slide_text_after_speed,
+    'height' => $height,
+    'width' => $width,
+  );
+
+  ddblock_init_js_css();
+  drupal_add_js($settings, array('type' => 'setting', 'scope' => JS_DEFAULT));
 
   if (!empty($content)) {
     //use a settings array for template arguments which is more flexible
     $settings = array(
       'delta' => $delta,
-      'debug_info' => $debug_info,
-      'imgcache_pager_item' => $imgcache_pager_item,
-      'imgcache_toggle' => $imgcache_toggle,
-      'imgcache_slide' => $imgcache_slide,
+      'image_style_pager_item' => $image_style_pager_item,
+      'image_style_toggle' => $image_style_toggle,
+      'image_style_slide' => $image_style_slide,
+      'nr_of_items' => $nr_of_items,
+      'nr_of_pager_items' => $nr_of_pager_items,
       'output_type' => $output_type,
       'pager' => $pager,
+      'pager_container' => $pager_container,
+      'pager_event' => $pager_event,
+      'pager_height' => $pager_height,
       'pager_position' => $pager_position,
+      'pager_width' => $pager_width,
+      'pager_scrollable_loop' => $pager_scrollable_loop,
       'pager2' => $pager2,
-      'pager2_position' => $pager2_position,
-      'pager2_pager_prev' => $pager2_pager_prev,
-      'pager2_pager_next' => $pager2_pager_next,
+      'pager2_event' => $pager2_event,
       'pager2_slide_prev' => $pager2_slide_prev,
       'pager2_slide_next' => $pager2_slide_next,
-      'pager_height' => $pager_height,
-      'pager_width' => $pager_width,
+      'pager2_slide_hide' => $pager2_slide_hide,
       'slide_text' => $slide_text,
       'slide_text_position' => $slide_text_position,
       'template' => $template,
-      'custom_template' => $custom_template,
-      'view_name' => $name,
+      'template_size' => $template_size,
+      'view_name' => $view_name,
       'view_display_id' => $display_id,
-
       'image_height' => $image_height,
       'image_width' => $image_width,
-         );
-
-    $block_content = theme(
-      'ddblock_cycle_block_content',
-      $settings,
-      $content
     );
-    //dsm($block_content);
+
+
+    $block_content = theme('ddblock_cycle_block_content', array(
+      'settings' => $settings,
+      'content' => $content,
+      )
+    );
     return $block_content;
   }
   else {
-    return false;
+    return FALSE;
   }
 }
 
 // THEME FUNCTIONS.
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function ddblock_theme() {
   return array(
     'ddblock_cycle_block_content' => array(
       'template' => 'ddblock-cycle-block-content',
-      'arguments' => array(
-        'ddblock_slider_settings' => NULL,
-        'ddblock_content' => NULL,
+      'variables' => array(
+        'settings' => NULL,
+        'content' => NULL,
       ),
     ),
     'ddblock_cycle_pager_content' => array(
       'template' => 'ddblock-cycle-pager-content',
-      'arguments' => array(
-        'ddblock_pager_settings' => NULL,
-        'ddblock_content' => NULL,
+      'variables' => array(
+        'pager_settings' => NULL,
+        'content' => NULL,
       ),
     ),
     'ddblock_add_instance' => array(
-      'arguments' => array(
+      'variables' => array(
         'add_block_form' => NULL,
         'ddblock_instances' => NULL,
       ),
+    ),
+    'ddblock_mappings_table' => array(
+      'variables' => array('form'),
     ),
   );
 }
@@ -2156,64 +1927,67 @@ function ddblock_theme() {
  *
  * @param $vars
  *   An array of variables to pass to the theme template.
- * @param $hook
- *   The name of the template being rendered ("block" in this case.)
  */
 function template_preprocess_ddblock_cycle_block_content(&$vars) {
-
-  // simplify variable name
-  $settings = $vars['ddblock_slider_settings'];
-
-  if ($settings['slide_text_position'] == "top" || $settings['slide_text_position'] == "bottom") {
-    $vars['ddblock_slider_settings']['slide_direction'] = "horizontal";
+  //symplify content  settings
+  $slider_settings['delta'] = $vars['settings']['delta'];
+  $slider_settings['image_height'] = $vars['settings']['image_height'];
+  $slider_settings['image_width'] = $vars['settings']['image_width'];
+  $slider_settings['image_style_slide'] = $vars['settings']['image_style_slide'];
+  $slider_settings['image_style_pager_item'] = $vars['settings']['image_style_pager_item'];
+  $slider_settings['nr_of_items'] = $vars['settings']['nr_of_items'];
+  $slider_settings['nr_of_pager_items'] = $vars['settings']['nr_of_pager_items'];
+  $slider_settings['output_type'] = $vars['settings']['output_type'];
+  $slider_settings['pager'] = $vars['settings']['pager'];
+  $slider_settings['pager_height'] = $vars['settings']['pager_height'];
+  $slider_settings['pager_width'] = $vars['settings']['pager_width'];
+  $slider_settings['pager_position'] = $vars['settings']['pager_position'];
+  $slider_settings['pager2'] = $vars['settings']['pager2'];
+  $slider_settings['pager2_slide_prev'] = $vars['settings']['pager2_slide_prev'];
+  $slider_settings['pager2_slide_next'] = $vars['settings']['pager2_slide_next'];
+  $slider_settings['slide_text'] = $vars['settings']['slide_text'];
+  $slider_settings['slide_text_position'] = $vars['settings']['slide_text_position'];
+  if ($vars['settings']['slide_text_position'] == "top" || $vars['settings']['slide_text_position'] == "bottom") {
+    $slider_settings['slide_direction'] = "horizontal";
   }
   else {
-    $vars['ddblock_slider_settings']['slide_direction'] = "vertical";
+    $slider_settings['slide_direction'] = "vertical";
   }
-  if ($settings['template'] == 'custom' ) {
-    $vars['ddblock_slider_settings']['custom_template'] = $settings['custom_template'];
-  }
-  $vars['ddblock_slider_settings']['slide_prev'] = $settings['pager2_slide_prev'];
-  $vars['ddblock_slider_settings']['slide_next'] = $settings['pager2_slide_next'];
-  $vars['ddblock_slider_settings']['pager_prev'] = $settings['pager2_pager_prev'];
-  $vars['ddblock_slider_settings']['pager_next'] = $settings['pager2_pager_next'];
+  $slider_settings['template'] = $vars['settings']['template'];
+  $slider_settings['template_size'] = $vars['settings']['template_size'];
 
+  $vars['ddblock_cycle_slider_settings'] = $slider_settings;
 
   // pager content settings
-  $pager_settings['delta'] = $settings['delta'];
-  $pager_settings['debug_info'] = $settings['debug_info'];
-  $pager_settings['output_type'] = $settings['output_type'];
-  $pager_settings['pager'] = $settings['pager'];
-  $pager_settings['pager2'] = $settings['pager2'];
-  $pager_settings['pager2_slide_prev'] = $settings['pager2_slide_prev'];
-  $pager_settings['pager2_slide_next'] = $settings['pager2_slide_next'];
-  $pager_settings['pager2_pager_prev'] = $settings['pager2_pager_prev'];
-  $pager_settings['pager2_pager_next'] = $settings['pager2_pager_next'];
-  $pager_settings['pager2_position'] = $settings['pager2_position'];
-  $pager_settings['pager_height'] = $settings['pager_height'];
-  $pager_settings['pager_width'] = $settings['pager_width'];
-  $pager_settings['imgcache_pager_item'] = $settings['imgcache_pager_item'];
-  $pager_settings['pager_position'] = $settings['pager_position'];
-  $pager_settings['template'] = $settings['template'];
-  $pager_settings['custom_template'] = $settings['custom_template'];
-  $pager_settings['view_name'] = $settings['view_name'];
-  $pager_settings['view_display_id'] = $settings['view_display_id'];
+  $pager_settings['delta'] = $vars['settings']['delta'];
+  $pager_settings['nr_of_items'] = $vars['settings']['nr_of_items'];
+  $pager_settings['nr_of_pager_items'] = $vars['settings']['nr_of_pager_items'];
+  $pager_settings['output_type'] = $vars['settings']['output_type'];
+  $pager_settings['pager'] = $vars['settings']['pager'];
+  $pager_settings['pager_container'] = $vars['settings']['pager_container'];
+  $pager_settings['pager_event'] = $vars['settings']['pager_event'];
+  $pager_settings['pager_height'] = $vars['settings']['pager_height'];
+  $pager_settings['pager_width'] = $vars['settings']['pager_width'];
+  $pager_settings['pager_scrollable_loop'] = $vars['settings']['pager_scrollable_loop'];
+  $pager_settings['pager2'] = $vars['settings']['pager2'];
+  $pager_settings['pager2_event'] = $vars['settings']['pager2_event'];
+  $pager_settings['pager2_slide_prev'] = $vars['settings']['pager2_slide_prev'];
+  $pager_settings['pager2_slide_next'] = $vars['settings']['pager2_slide_next'];
+  $pager_settings['pager2_slide_hide'] = $vars['settings']['pager2_slide_hide'];
+  $pager_settings['image_style_pager_item'] = $vars['settings']['image_style_pager_item'];
+  $pager_settings['pager_position'] = $vars['settings']['pager_position'];
+  $pager_settings['template'] = $vars['settings']['template'];
+  $pager_settings['view_name'] = $vars['settings']['view_name'];
 
-  $vars['ddblock_pager_content'] = theme(
-      'ddblock_cycle_pager_content',
-      $pager_settings,
-      $vars['ddblock_content']);
+  $vars['pager_content'] = theme('ddblock_cycle_pager_content', array(
+      'pager_settings' => $pager_settings,
+      'content' => $vars['content'],
+    )
+  );
 
   // additional candidate template files
-  if ($vars['ddblock_template'] == 'custom') {
-    $vars['template_files'][] = 'ddblock-cycle-block-content-'. $settings['custom_template'];
-    $vars['template_files'][] = 'ddblock-cycle-block-content-'. $settings['delta'];
-  }
-  else {
-    $vars['template_files'][] = 'ddblock-cycle-block-content-'. $settings['template'];
-    $vars['template_files'][] = 'ddblock-cycle-block-content-'. $settings['delta'];
-  }
-  //dpm($vars);
+  $vars['theme_hook_suggestions'][] = 'ddblock_cycle_block_content__' . $vars['settings']['template'];
+  $vars['theme_hook_suggestions'][] = 'ddblock_cycle_block_content__' . $vars['settings']['delta'];
 }
 
 /**
@@ -2221,29 +1995,13 @@ function template_preprocess_ddblock_cycle_block_content(&$vars) {
  *
  * @param $vars
  *   An array of variables to pass to the theme template.
- * @param $hook
- *   The name of the template being rendered ("block" in this case.)
  */
 function template_preprocess_ddblock_cycle_pager_content(&$vars) {
-//  dpm($vars);
-
-  $settings = $vars['ddblock_pager_settings'];
+  $vars['ddblock_cycle_pager_settings'] = $vars['pager_settings'];
 
   // additional candidate template files
-  if ($settings['template'] == 'custom') {
-    $vars['template_files'][] = 'ddblock-cycle-pager-content-'. $settings['custom_template'];
-    $vars['template_files'][] = 'ddblock-cycle-pager-content-'. $settings['delta'];
-  }
-  else {
-    $vars['template_files'][] = 'ddblock-cycle-pager-content-'. $settings['template'];
-    $vars['template_files'][] = 'ddblock-cycle-pager-content-'. $settings['delta'];
-  }
-
-  $vars['ddblock_pager_settings']['pager_prev'] = $settings['pager2_pager_prev'];
-  $vars['ddblock_pager_settings']['pager_next'] = $settings['pager2_pager_next'];
-  $vars['ddblock_pager_settings']['slide_next'] = $settings['pager2_slide_next'];
-  $vars['ddblock_pager_settings']['slide_prev'] = $settings['pager2_slide_prev'];
-
+  $vars['theme_hook_suggestions'][] = 'ddblock_cycle_pager_content__' . $vars['pager_settings']['template'];
+  $vars['theme_hook_suggestions'][] = 'ddblock_cycle_pager_content__' . $vars['pager_settings']['delta'];
 }
 
 // HELPER FUNCTIONS.
@@ -2258,8 +2016,7 @@ function template_preprocess_ddblock_cycle_pager_content(&$vars) {
  *   An associative array containing the configuration settings of the block.
  */
 function ddblock_get_configuration_settings($origin, $delta) {
-  $configuration_settings = unserialize(variable_get('ddblock_block_'. $origin ."_". $delta .'_cycle_settings', ''));
-  return $configuration_settings;
+  return new ddblockConfigurationSettings(variable_get('ddblock_block_' . $origin . "_" . $delta . '_settings', array()));
 }
 
 /**
@@ -2276,109 +2033,89 @@ function ddblock_get_configuration_settings($origin, $delta) {
  *   none.
  */
 function ddblock_set_configuration_settings($origin, $delta, $edit) {
-  // to prevent setting invalid numbers, number fields are tranformed to integers (non number values will become 0).
-  // for numbers values used in javascript this must be converted to an integer.
-  $configuration_settings = array();
+  $configuration_settings = new ddblockConfigurationSettings($edit);
 
-  $configuration_settings['advanced'] = (int) $edit['advanced'];
-
-  //basic settings
-  $configuration_settings['container'] = $edit['container'];
-  $configuration_settings['content_type'] = $edit['content_type'];
-  $configuration_settings['custom_jquery'] = $edit['custom_jquery'];
-  $configuration_settings['debug_info'] = $edit['debug_info'];
-  $configuration_settings['folder'] = $edit['folder'];
-  $configuration_settings['ignore_files'] = $edit['ignore_files'];
-  $configuration_settings['fx'] = $edit['fx'];
-  $configuration_settings['height'] = (int) $edit['height'];
-  $configuration_settings['image_height'] = (int) $edit['image_height'];
-  $configuration_settings['image_width'] = (int) $edit['image_width'];
-  $configuration_settings['imgcache_toggle'] = (int) $edit['imgcache_toggle'];
-  if (!empty($configuration_settings['imgcache_toggle'])) {
-    $configuration_settings['imgcache_slide'] = $edit['imgcache_slide'];
-    $configuration_settings['imgcache_pager_item'] = $edit['imgcache_pager_item'];
-  }
-  $configuration_settings['input_type'] = $edit['input_type'];
-  $configuration_settings['max_image'] = (int) $edit['max_image'];
-  $configuration_settings['next'] = (int) $edit['next'];
-  $configuration_settings['nodes'] = $edit['nodes'];
-  $configuration_settings['node_body_teaser'] = $edit['node_body_teaser'];
-  $configuration_settings['order'] = $edit['order'];
-  $configuration_settings['origin'] = $origin;
-  $configuration_settings['output'] = $edit['output'];
-  $configuration_settings['overflow'] = (int) $edit['overflow'];
-  $configuration_settings['pause'] = (int) $edit['pause'];
-  $configuration_settings['pager_toggle'] = (int) $edit['pager_toggle'];
-  if (!empty($configuration_settings['pager_toggle'])) {
-    $configuration_settings['pager'] = $edit['pager'];
-    $configuration_settings['pager_container'] = $edit['pager_container'];
-    $configuration_settings['pager_event'] = $edit['pager_event'];
-    $configuration_settings['pager_fast'] = (int) $edit['pager_fast'];
-    $configuration_settings['pager_pause'] = (int) $edit['pager_pause'];
-    $configuration_settings['pager_height'] = (int) $edit['pager_height'];
-    $configuration_settings['pager_width'] = (int) $edit['pager_width'];
-    $configuration_settings['pager_position'] = $edit['pager_position'];
-  }
-  $configuration_settings['pager2'] = (int) $edit['pager2'];
-  if (!empty($configuration_settings['pager2'])) {
-    $configuration_settings['pager2_event'] = $edit['pager2_event'];
-    $configuration_settings['pager2_slide_prev'] = $edit['pager2_slide_prev'];
-    $configuration_settings['pager2_slide_next'] = $edit['pager2_slide_next'];
-    $configuration_settings['pager2_slide_hide'] = (int) $edit['pager2_slide_hide'];
-    $configuration_settings['pager2_pager_prev'] = $edit['pager2_pager_prev'];
-    $configuration_settings['pager2_pager_next'] = $edit['pager2_pager_next'];
-    $configuration_settings['pager2_pager_hide'] = (int) $edit['pager2_pager_hide'];
-    $configuration_settings['pager2_position'] = $edit['pager2_position'];
-  }
-  $configuration_settings['speed'] = (int) $edit['speed'];
-  $configuration_settings['timeout'] = (int) $edit['timeout'];
-  $configuration_settings['widget'] = $edit['widget'];
-  $configuration_settings['width'] = (int) $edit['width'];
-
-  //advanced settings
-  if (!empty($configuration_settings['advanced'])) {
-    $configuration_settings['slide_text'] = (int) $edit['slide_text'];
-    $configuration_settings['slide_text_jquery'] = (int) $edit['slide_text_jquery'];
-    $configuration_settings['slide_text_after_effect'] = $edit['slide_text_after_effect'];
-    $configuration_settings['slide_text_after_speed'] = (int) $edit['slide_text_after_speed'];
-    $configuration_settings['slide_text_before_effect'] = $edit['slide_text_before_effect'];
-    $configuration_settings['slide_text_before_speed'] = (int) $edit['slide_text_before_speed'];
-    $configuration_settings['slide_text_container'] = $edit['slide_text_container'];
-    $configuration_settings['slide_text_position'] = $edit['slide_text_position'];
-    $configuration_settings['template'] = $edit['template'];
-    if ($configuration_settings['template'] == 'custom') {
-      $configuration_settings['custom_template'] = $edit['custom_template'];
-    }
-  }
-
-  // set pager to number_pager if input type is not images and image pager.
-  if (($configuration_settings['input_type'] <> 'images') &&
-      ($configuration_settings['pager'] == 'image-pager')) {
-    $configuration_settings['pager'] = 'number-pager';
-  }
   // set ouput to view_fields for advanced blocks otherwise output becomes view_content
-  if (!empty($configuration_settings['advanced'])) {
-    $configuration_settings['output'] = 'view_fields';
+  if ($configuration_settings->widget != 'default') {
+    $configuration_settings->output = 'view_fields';
   }
   else {
-    $configuration_settings['output'] = 'view_content';
+    $configuration_settings->output = 'view_content';
   }
-
-  variable_set('ddblock_block_'. $origin .'_'. $delta .'_cycle_settings', serialize($configuration_settings));
+  variable_set('ddblock_block_' . $origin . '_' . $delta . '_settings', $configuration_settings->settings());
+}
+/**
+ * Get the configuration settings of a cycle block.
+ *
+ * @param $origin
+ *   Origin of the block.
+ * @param $delta
+ *   Blocknumber of the block.
+ * @return
+ *   An associative array containing the configuration settings of the block.
+ */
+function ddblock_get_cycle_configuration_settings($origin, $delta) {
+  return new ddblockCycleConfigurationSettings(variable_get('ddblock_block_' . $origin . "_" . $delta . '_cycle_settings', array()));
 }
 
 /**
- * Return a persistent variable.
+ * Set the configuration settings of a cycle block.
  *
- * @param $name
- *   The name of the variable to return.
- * @param $default
- *   The default value to use if this variable has never been set.
+ * @param $origin
+ *   Origin of the block.
+ * @param $delta
+ *   Blocknumber of the block.
+ * @param $edit
+ *   An associative array containing the configuration settings of the block.
+ *
  * @return
- *   The value of the variable.
+ *   none.
  */
-function _ddblock_get_variable($name, $default) {
-  return isset($name) ? $name : $default;
+function ddblock_set_cycle_configuration_settings($origin, $delta, $edit) {
+  $configuration_settings = new ddblockCycleConfigurationSettings($edit);
+
+   // set pager to none if pager_toggle is unchecked
+  if ($configuration_settings->pager_toggle == 0) {
+    $configuration_settings->pager = 'none';
+  }
+  // set image_style-slide and image_style_pager_item to none if image_style_toggle is unchecked
+  if ($configuration_settings->image_style_toggle == 0) {
+    $configuration_settings->image_style_slide = 'none';
+    $configuration_settings->image_style_pager_item = 'none';
+  }
+  variable_set('ddblock_block_' . $origin . '_' . $delta . '_cycle_settings', $configuration_settings->settings());
+}
+
+/**
+ * Get the mapping settings of a cycle block.
+ *
+ * @param $origin
+ *   Origin of the block.
+ * @param $delta
+ *   Blocknumber of the block.
+ * @return
+ *   An associative array containing the configuration settings of the block.
+ */
+function ddblock_get_cycle_mapping_settings($origin, $delta) {
+  return new ddblockCycleMappingSettings(variable_get('ddblock_block_' . $origin . "_" . $delta . '_cycle_mapping_settings', array()));
+}
+
+/**
+ * Set the mapping settings of a cycle block.
+ *
+ * @param $origin
+ *   Origin of the block.
+ * @param $delta
+ *   Blocknumber of the block.
+ * @param $edit
+ *   An associative array containing the configuration settings of the block.
+ *
+ * @return
+ *   none.
+ */
+function ddblock_set_cycle_mapping_settings($origin, $delta, $edit) {
+  $mapping_settings = new ddblockCycleMappingSettings($edit['block_settings']['mapping_wrapper']['mappings']);
+  variable_set('ddblock_block_' . $origin . '_' . $delta . '_cycle_mapping_settings', $mapping_settings->settings());
 }
 
 /**
@@ -2390,7 +2127,7 @@ function _ddblock_get_variable($name, $default) {
 function _ddblock_get_effects() {
   // effects.
   $_fx = array(
-    'none'   => t('none'),
+    'none' => t('none'),
     'all' => t('all'),
     'blindX' => t('blindX'),
     'blindY' => t('blindY'),
@@ -2425,64 +2162,162 @@ function _ddblock_get_effects() {
 }
 
 /**
+ * Return available easing effect for the dynamic display block.
+ *
+ * @return
+ *   An associative array containing the available easing effect for the dynamic display block.
+ */
+function _ddblock_get_easing_effects() {
+  // easing effects.
+  $_easing_fx = array(
+    'easeInQuad' => 'easeInQuad',
+    'easeOutQuad' => 'easeOutQuad',
+    'easeInOutQuad' => 'easeInOutQuad',
+    'easeInCubic' => 'easeInCubic',
+    'easeOutCubic' => 'easeOutCubic',
+    'easeInOutCubic' => 'easeInOutCubic',
+    'easeInQuart' => 'easeInQuart',
+    'easeOutQuart' => 'easeOutQuart',
+    'easeInOutQuart' => 'easeInOutQuart',
+    'easeInQuint' => 'easeInQuint',
+    'easeOutQuint' => 'easeOutQuint',
+    'easeInOutQuint' => 'easeInOutQuint',
+    'easeInSine' => 'easeInSine',
+    'easeOutSine' => 'easeOutSine',
+    'easeInOutSine' => 'easeInOutSine',
+    'easeInExpo' => 'easeInExpo',
+    'easeOutExpo' => 'easeOutExpo',
+    'easeInOutExpo' => 'easeInOutExpo',
+    'easeInCirc' => 'easeInCirc',
+    'easeOutCirc' => 'easeOutCirc',
+    'easeInOutCirc' => 'easeInOutCirc',
+    'easeInElastic' => 'easeInElastic',
+    'easeOutElastic' => 'easeOutElastic',
+    'easeInOutElastic' => 'easeInOutElastic',
+    'easeInBack' => 'easeInBack',
+    'easeOutBack' => 'easeOutBack',
+    'easeInOutBack' => 'easeInOutBack',
+    'easeInBounce' => 'easeInBounce',
+    'easeOutBounce' => 'easeOutBounce',
+    'easeInOutBounce' => 'easeInOutBounce',
+  );
+
+  return $_easing_fx;
+}
+
+/**
  * Get images from a directory.
  *
  * @param $imagepath
  *   Path to the directoryory where the images are stored.
  * @param $order
  *   The order in which to return the images.
+ * @param $max_image
+ *   The maximum images to show in the slideshow.
+ * @param $ignore_files
+ *   Comma seperated list of strings. When string exist in image file name, the image is ignored.
  * @return
- *   An array containing the filename of the images for the dynamic display block.
+ *   An array containing the filenames of the images for the dynamic display block.
  */
-function _ddblock_get_image_array($imagepath, $order, $max_image, $ignore_files) {
+function _ddblock_get_image_array($imagepath, $order, $max_image, $ignore_files, $image_style_slide, $image_style_pager_item) {
+
   // only images jpg, jpeg,  gif, png
-  $mask = '[a-zA-Z0-9\_\-\.]+\.(jpe?g|gif|png|JPE?G|GIF|PNG)$';
+  $mask = '/[a-zA-Z0-9\_\-\.\]\[]+\.(jpe?g|gif|png|JPE?G|GIF|PNG)$/';
   // ignore the following files
-  $ignore = array('.', '..', 'CVS');
+  $ignore = '/(\.\.?|CVS)$/';
 
   // Finds all files that match a given mask in a given directory, files which match the ignore variable are excluded.
-  $file_array = file_scan_directory($imagepath, $mask, $ignore, $callback = 0, $recurse = FALSE, $key = 'filename', $min_depth = 0, $depth = 0);
+  $file_array = file_scan_directory($imagepath, $mask, array('nomask' => $ignore, 'callback' => $callback = 0, 'recurse' => $recurse = FALSE, 'key' => $key = 'filename', 'min_depth' => $min_depth = 0));
 
   $file_names = array();
 
+  // Remove to file to ignore
   if (!empty($ignore_files)) {
     $ignore_strings = explode(',', $ignore_files);
 
+    $temp_file_array = array();
     foreach ($file_array as $value) {
-      $ignore=FALSE;
+      $ignore = FALSE;
 
       foreach ($ignore_strings as $ignore_string ) {
         if (stristr($value->filename, $ignore_string)) {
-          $ignore=TRUE;
+          $ignore = TRUE;
           break;
         }
       }
       if (!$ignore) {
-       $file_names[] = $value->filename;
+        $temp_file_array[] = $value;
       }
     }
+    $file_array = $temp_file_array;
   }
-  else {
-    foreach ($file_array as $value) {
-      $file_names[] = $value->filename;
+  foreach ($file_array as $value) {
+    if ($image_style_slide <> 'none') {
+      $image_info = _ddblock_get_file_sizes($value->uri, $image_style_slide);
+      $image = array(
+        'title' => 'image',
+        'path' => $value->uri,
+        'alt' => 'image',
+        'style_name' => $image_style_slide,
+        'width' => $image_info['width'] . 'px',
+        'height' => $image_info['height'] . 'px',
+      );
+
+      $file_names['slide_image'][] = theme('image_style', $image);
+    }
+    else {
+      $variables = array(
+        'path' => $value->uri,
+        'alt' => 'image',
+        'title' => 'image',
+        'width' => '200px',
+        'height' => '200px',
+        'attributes' => array(),
+      );
+      $file_names['slide_image'][] = theme('image', $variables);
+    }
+    if ($image_style_pager_item <> 'none') {
+      $image_info = _ddblock_get_file_sizes($value->uri, $image_style_pager_item);
+      $image = array(
+        'title' => 'image',
+        'path' => $value->uri,
+        'alt' => 'image',
+        'style_name' => $image_style_pager_item,
+        'width' => $image_info['width'] . 'px',
+        'height' => $image_info['height'] . 'px',
+      );
+      $file_names['pager_image'][] = theme('image_style', $image);
+    }
+    else {
+      $variables = array(
+        'path' => $value->uri,
+        'alt' => 'image',
+        'title' => 'image',
+        'width' => '55px',
+        'height' => '55px',
+        'attributes' => array(),
+      );
+      $file_names['pager_image'][] = theme('image', $variables);
     }
   }
-
 
   switch ($order) {
     case 'random':
       shuffle($file_names);
       break;
-    case 'asc' :
-      asort($file_names);
+    case 'asc':
+      asort($file_names['slide_image']);
+      asort($file_names['pager_image']);
       break;
     case 'desc':
-      rsort($file_names);
+      rsort($file_names['slide_image']);
+      rsort($file_names['pager_image']);
       break;
     case 'none':
       break;
   }
-  $file_names = array_slice($file_names, 0, $max_image);
+  $file_names['slide_image'] = array_slice($file_names['slide_image'], 0, $max_image);
+  $file_names['pager_image'] = array_slice($file_names['pager_image'], 0, $max_image);
   return $file_names;
 }
 
@@ -2497,26 +2332,37 @@ function _ddblock_get_image_array($imagepath, $order, $max_image, $ignore_files)
  *   An array containing the teaser of nodes for the dynamic display block
  */
 function _ddblock_get_content_array($content_type, $nodes, $node_body_teaser) {
-
-  $sql = "SELECT nid ".
-         "FROM {node} ".
-         "WHERE status = 1 ".
-         "AND type = '%s' ".
-         "AND nid = '%s' ";
-  $results = db_query($sql, $content_type, $nodes);
-
+  $sql = "SELECT nid " .
+         "FROM {node} " .
+         "WHERE status = 1 " .
+         "AND type = :content_type " .
+         "AND nid = :nodes";
+  $results = db_query($sql, array(
+    ':content_type' => $content_type,
+    ':nodes' => $nodes)
+  );
   $selected_nodes = array();
-  $show_teaser = ($node_body_teaser == 'teaser') ? TRUE : FALSE;
-  $i=0;
-  while ($obj = db_fetch_object($results)) {
+  $view_mode = ($node_body_teaser == 'teaser') ? 'teaser' : 'full';
+  while ($obj = $results->fetchObject()) {
     $node = node_load($obj->nid);
-    // show an HTML representation of the themed node teaser.by setting the third parameter to false and dont show links by seting the fourth parameter to FALSE.
-    $selected_nodes[$i] = node_view($node, $show_teaser, FALSE, FALSE);
-    $i++;
+    $content = node_view($node, $view_mode);
+    $selected_nodes[] = drupal_render($content);
   }
-
   return $selected_nodes;
 }
+
+function _ddblock_get_file_sizes($path, $style_name) {
+  // theme_image() can only honor the $getsize parameter with local file paths.
+  // The derivative image is not created until it has been requested so the file
+  // may not yet exist, in this case we just fallback to the URL.
+  $style_path = image_style_path($style_name, $path);
+  if (!file_exists($style_path)) {
+    $style_path = image_style_url($style_name, $path);
+  }
+  $image_info = image_get_info($style_path);
+
+  return $image_info;
+  };
 
 /**
  * Get node id's and titles of nodes of a content type.
@@ -2528,14 +2374,16 @@ function _ddblock_get_content_array($content_type, $nodes, $node_body_teaser) {
  */
 function _ddblock_get_content_type_nodes($content_type) {
 
-  $sql = "SELECT nid ".
-         "FROM {node} ".
-         "WHERE status=1 ".
-         "AND type='%s' ";
-  $results = db_query($sql, $content_type);
+  $sql = "SELECT nid " .
+         "FROM {node} " .
+         "WHERE status=1 " .
+         "AND type= :content_type";
+  $results = db_query($sql, array(
+    ':content_type' => $content_type)
+  );
 
   $selected_nodes = array();
-  while ($obj = db_fetch_object($results)) {
+  while ($obj = $results->fetchObject()) {
     $node = node_load($obj->nid);
     $selected_nodes[$node->nid] = check_plain($node->title);
   }
@@ -2590,7 +2438,7 @@ function ddblock_select_nodes_js() {
 
   // Don't call drupal_json(). ahah.js uses an iframe and
   // the header output by drupal_json() causes problems in some browsers.
-  print drupal_to_js(array('status' => TRUE, 'data' => $output));
+  print drupal_json_encode(array('status' => TRUE, 'data' => $output));
   exit();
 }
 
@@ -2608,14 +2456,13 @@ function ddblock_instances() {
   $block_instances = ddblock_get_block_instances(NULL, TRUE);
 
   // theme the instances form.
-  return theme('ddblock_add_instance', $form, $block_instances);
+  return theme('ddblock_add_instance', array('add_block_form' => $form, 'ddblock_instances' => $block_instances));
 }
-
 
 /**
  * form to add a dynamic display block instance.
  */
-function ddblock_add_instance_form($form_state) {
+function ddblock_add_instance_form($form, $form_state) {
   $form = array();
   $form['title'] = array(
     '#type' => 'textfield',
@@ -2634,7 +2481,7 @@ function ddblock_add_instance_form($form_state) {
 
       //$option[0]  contains module name, $option[1]  contains delta, $option[2]  contains block title,
       $option = explode(':', $value);
-      $options[$option[0] .':'. $option[1]] = $option[0] .' - '. $option[2];
+      $options[$option[0] . ':' . $option[1]] = $option[0] . ' - ' . $option[2];
     }
   }
 
@@ -2669,8 +2516,8 @@ function ddblock_get_block_instances($delta = NULL, $reset = FALSE) {
 
   if (!isset($block_instances) || $reset) {
     $block_instances = array();
-    $result = db_query("SELECT * FROM {ddblock_block} where enabled = 1");
-    while ($block_instance = db_fetch_object($result)) {
+    $results = db_query("SELECT * FROM {ddblock_block} where enabled = 1");
+    while ($block_instance = $results->fetchObject()) {
       $block_instances[$block_instance->delta] = $block_instance;
     }
   }
@@ -2682,22 +2529,21 @@ function ddblock_get_block_instances($delta = NULL, $reset = FALSE) {
  * Add block instance to database from add_instance_form.
  */
 function ddblock_add_instance_form_submit($form, &$form_state) {
-
   // Get the original block info.
   $original_block = explode(':', $form_state['values']['block']);
   // Create new delta for block instance.
-  $sql = "INSERT INTO {ddblock_block}
-          (title, module, delta_original, enabled)
-          VALUES ('%s', '%s', '%s', %d)";
-  $result = db_query($sql,
-    $form_state['values']['title'], // new title of the block.
-    $original_block[0], // original module.
-    $original_block[1], // original delta.
-    1 // is now ddblock enabled.
-  );
+  $result = $id = db_insert('ddblock_block')
+  ->fields(array(
+    'title' => $form_state['values']['title'],
+    'module' => $original_block[0],
+    'delta_original' => $original_block[1],
+    'enabled' => 1,
+  ))
+  ->execute();
 
   drupal_set_message(t('Dynamic display block instance Added.'));
-  return 'admin/settings/ddblock';
+  $form_state['redirect'] = 'admin/structure/ddblock';
+  return $form;
 }
 
 
@@ -2705,7 +2551,7 @@ function ddblock_add_instance_form_submit($form, &$form_state) {
  * Get title of a block by its module and delta.
  */
 function ddblock_get_block_title($module, $delta) {
-  $blocks = module_invoke($module, 'block', 'list');
+  $blocks = module_invoke($module, 'block_info');
   $title = $blocks[$delta]['info'];
   return $title;
 }
@@ -2736,7 +2582,9 @@ function ddblock_get_ddblock_enabled_module_blocks() {
 /**
  * Theme function for the "Block Instances" page.
  */
-function theme_ddblock_add_instance($add_block_form, $block_instances) {
+function theme_ddblock_add_instance($variables) {
+  $add_block_form = $variables['add_block_form'];
+  $block_instances = $variables['ddblock_instances'];
 
   $output = '';
   $header = array(
@@ -2756,9 +2604,9 @@ function theme_ddblock_add_instance($add_block_form, $block_instances) {
     }
   }
 
-  $output .= '<p><h3>'. t('Manage Instances') .'</h3>'. theme('table', $header, $rows) .'</p>';
+  $output .= '<p><h3>' . t('Manage Instances') . '</h3>' . theme('table', array('header' => $header, 'rows' => $rows)) . '</p>';
 
-  $output .= '<p><h3>'. t('Add Instance') .'</h3>'. $add_block_form .'</p>';
+  $output .= '<p><h3>' . t('Add Instance') . '</h3>' . drupal_render($add_block_form) . '</p>';
   return $output;
 }
 
@@ -2769,150 +2617,175 @@ function ddblock_block_sort($a, $b) {
   return strcmp($a['module'] . $a['info'], $b['module'] . $b['info']);
 }
 
-function ddblock_explode_assoc($glue1, $glue2, $array) {
-  $array2=explode($glue2, $array);
-  foreach ($array2 as $val) {
-    $pos=strpos($val, $glue1);
-    $key=substr($val, 0, $pos);
-    $array3[$key] =substr($val, $pos+1, strlen($val));
-  }
-  return $array3;
+/**
+ * Returns the path to actual site theme in use because path_to_theme is flaky.
+ */
+function _ddblock_get_theme_path() {
+  // path_to_theme gives the path to the admin theme when a different one is used.
+  // As a band-aid solution, this will pull the default theme out of the
+  // database and use that. (got this from advanced_forum module, in this case always
+  // use the default theme from database)
+  static $theme_path;
+
+    if (!$theme_path) {
+      $default_theme = variable_get('theme_default', 'garland');
+      $theme_path = drupal_get_path('theme', $default_theme);
+    }
+    return $theme_path;
 }
 
- /**
- * Show debug information for content preprocess function helper function
- *
- * @param $vars             - An array of variables to pass to the theme template.
- */
- function ddblock_show_content_debug_info($vars) {
-  $settings = $vars['ddblock_slider_settings'];
+function theme_ddblock_mappings_table($form) {
+  $vars['header'] = array(t('Target'), t('Source'));
+  $vars['rows'] = array();
 
-  switch ($settings['debug_info']) {
-    case 'devel':
-      dpm($settings['view_name'], 'View - name');
-      dpm($settings['view_display_id'], 'View - display_id');
-      dpm(count($vars['ddblock_content']), 'Number of slides');
-      drupal_set_message('<pre>Content first slide: </pre>');
-      dvm($vars['ddblock_content'][0], 'Content first slide');
-      break;
-    case 'drupal':
-      drupal_set_message('<pre>View - name => ' . var_export($settings['view_name'], true) . '</pre>');
-      drupal_set_message('<pre>View - display_Id => ' . var_export($settings['view_display_id'], true) . '</pre>');
-      drupal_set_message('<pre>Number of slides => ' . count($vars['ddblock_content']) .'</pre>');
-      drupal_set_message('<pre>Content first slide => ' . var_export($vars['ddblock_content'][0], true) . '</pre>');
-      break;
-    case 'none':
-      break;
+  foreach (element_children($form) as $key) {
+    // No need to print the field title every time.
+    unset(
+      $form[$key]['target']['#title'],
+      $form[$key]['source']['#title']
+    );
+
+    // Build the table row.
+    $row = array(
+      'data' => array(
+        array('data' => drupal_render($form[$key]['target']) . drupal_render($form[$key]['target']), 'class' => 'target'),
+        array('data' => drupal_render($form[$key]['source']) . drupal_render($form[$key]['source']), 'class' => 'source'),
+      ),
+    );
+
+    // Add additional attributes to the row, such as a class for this row.
+    if (isset($form[$key]['#attributes'])) {
+      $row = array_merge($row, $form[$key]['#attributes']);
+    }
+    $vars['rows'][] = $row;
   }
-}
- /**
- * Show debug information for pager preprocess function helper function
- *
- * @param $vars             - An array of variables to pass to the theme template.
- */
- function ddblock_show_pager_debug_info($vars) {
-  switch ($vars['ddblock_pager_settings']['debug_info']) {
-    case 'devel':
-      drupal_set_message('<pre>Pager Settings: </pre>');
-      dpm($vars['ddblock_pager_settings'], 'Pager Settings');
-      break;
-    case 'drupal':
-      drupal_set_message('<pre>Pager Settings => ' . var_export($vars['ddblock_pager_settings'], true) . '</pre>');
-      break;
-    case 'none':
-      break;
-  }
+
+  $output = theme('table', $vars);
+  $output .= drupal_render($form);
+  return $output;
 }
 
- /**
- * Add slide image variable helper function
- *
- * @param $vars             - An array of variables to pass to the theme template.
- *        $image_type       - Slider image or pager image
- *        $cck_imagefield   - CCK generated image field name
- *        $alt              - Alternative text for the image
- *        $cck_content_type - Content type for getting default image
- *        $cck_field_name   - CCK field name for getting default image
- *        $link             - URL to link the image to
+/**
+ * Helper function to define populated form field elements for album track node form.
  */
-function ddblock_add_image($vars, $image_type, $cck_image_field, $alt=NULL, $cck_content_type=NULL, $cck_field_name=NULL, $link=NULL) {
+function ddblock_mapping_display_form($delta, $target, $source, $source_fields) {
 
-  $link_prefix = '';
-  $link_suffix = '';
-  if ($image_type == 'slider_item_image') {
-    $used_image_type = $vars['ddblock_slider_settings']['imgcache_slide'];
-  }
-  if ($image_type == 'pager_item_image') {
-    $used_image_type = $vars['ddblock_pager_settings']['imgcache_pager_item'];
-  }
+  $form = array(
+    '#tree' => TRUE,
+  );
 
-  // add slide_image variable
-  if (isset($cck_image_field)) {
-    // get image id
-    $fid = $cck_image_field;
-    // get path to image
-    $filepath = db_result(db_query("SELECT filepath FROM {files} WHERE fid = %d", $fid));
+  $form['target'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Target'),
+    '#weight' => 1,
+    '#size' => 20,
+    '#parents' => array('block_settings', 'mapping_wrapper', 'mappings', $delta, 'target'),
+    '#default_value' => $target,
+    '#prefix' => '<div class="ddblock-target">',
+    '#suffix' => '</div>',
+
+  );
+
+  $form['source'] = array(
+    '#type' => 'select',
+    '#title' => t('Source'),
+    '#weight' => 2,
+    '#parents' => array('block_settings', 'mapping_wrapper', 'mappings', $delta, 'source'),
+    '#default_value' => $source,
+    '#size' => 1,
+    '#options' => $source_fields,
+    '#prefix' => '<div class="ddblock-source">',
+    '#suffix' => '</div>',
+  );
+
+  return $form;
+}
+
+/**
+ * This submit handler is hooked to the hidden submit button and is executed on the AHAH call
+ */
+function ddblock_options_form_submit($form, &$form_state) {
+  unset($form_state['submit_handlers']);
+  form_execute_handlers('submit', $form, $form_state);
+  $form_state_values = $form_state['values'];
+  $form_state['form_state_values'] = $form_state_values;
+  $form_state['rebuild'] = TRUE;
+  return $form_state_values;
+}
+
+/**
+ * Form validation
+ */
+function ddblock_options_form_validate($form, &$form_state) {
+  if (!is_numeric($form_state['values']['block_settings']['settings']['pager_settings']['nr_of_pager_items'])) {
+    form_error($form['block_settings']['settings']['pager_settings']['nr_of_pager_items'], t('!setting must be numeric!', array('!setting' => 'nr_of_pager_items')));
   }
-  // if image does not exist, try to find default content type imagefield image
+}
+
+/**
+ * Get theme sizes of a theme.
+ *
+ * @param $theme
+ *   Slidehsow theme.
+ * @return
+ *   An array containing the theme sizes.
+ */
+function _ddblock_get_template_size($theme) {
+
+  $path_to_themes = _ddblock_get_theme_path() . '/custom/modules/ddblock/' . $theme;
+
+  $dirs = _ddblock_dir_scan_directory($path_to_themes, 'siz');
+
+  if (!empty($dirs)) {
+    asort($dirs);
+    foreach ($dirs as $dir) {
+      $options[$dir] = $dir;
+    }
+  }
   else {
-    if (module_exists('imagefield')) {
-      // cck fieldname, cck content type in use
-      $field = content_fields($cck_field_name, $cck_content_type);
-      if (!empty($field)) {
-        $filepath = $field['widget']['default_image']['filepath'];
+    $options['default'] = 'Default';
+  }
+
+  return $options;
+}
+
+/**
+ * Get the sub directories, starting with the mapping string, of a directory.
+ *
+ * @param $dir
+ *   directory.
+ * @param $mapping
+ *   the start characters of the directory
+ * @return
+ *   An array of directories.
+ */
+function _ddblock_dir_scan_directory($dir, $mapping = '') {
+  $dirs = array();
+  $mask = '/[^0-9A-Za-z]/';
+
+  if (is_dir($dir) && $handle = opendir($dir)) {
+    while ($file = readdir($handle)) {
+      // no current and previous directory
+      if ($file[0] != '.') {
+        if (is_dir("$dir/$file")) {
+          //only alphanumeric dirs
+          if (!preg_match($mask, $file)) {
+            if (!empty($mapping)) {
+              if (substr($file, 0, 3) == $mapping)  {
+                // add dir.
+                $dirs[] = $file;
+              }
+            }
+            else {
+              // add dir.
+              $dirs[] = $file;
+            }
+          }
+        }
       }
     }
+    closedir($handle);
   }
-  // if image or default imga e exists
-  if (!empty($filepath)) {
-    // add link to image if link exsist
-    if (!empty($link)) {
-      $link_prefix = '<a href="' . base_path() .  $link . '">';
-      $link_suffix = '</a>';
-    }
-    //  use imagecache (imagecache, preset_name, file_path, alt, title, array of attributes)
-    if (module_exists('imagecache') && is_array(imagecache_presets()) && $used_image_type <> '<none>') {
-      $image =
-        $link_prefix .
-        theme('imagecache',
-              $used_image_type,
-              $filepath,
-              check_plain($alt)) .
-        $link_suffix;
-    }
-    else {
-      $image =
-        $link_prefix .
-        '<img src="' . base_path() . $filepath .
-        '" alt="' . check_plain($alt) . '"/>' .
-        $link_suffix;
-    }
-  }
-  return $image;
-}
 
- /**
- * Add youtube thumbnail slide image variable helper function
- *
- * @param $cck_imagefield   - CCK generated image field name
- *        $alt              - Alternative text for the image
- *        $link             - URL to link the image to
- */
-function ddblock_add_thumbnail_image($cck_image_field, $alt=NULL, $link=NULL) {
-  $link_prefix = '';
-  $link_suffix = '';
-  if (!empty($link)) {
-    $link_prefix = '<a href="' . $link . '">';
-    $link_suffix = '</a>';
-  }
-  if (isset($cck_image_field)) {
-    $data=unserialize($cck_image_field);
-    if (isset($data['thumbnail']['url'])) {
-      $image = $link_prefix .
-               '<img src="' . $data['thumbnail']['url'] .
-               '" alt="' . $alt . '"/>' .
-               $link_suffix;
-    }
-  }
-  return $image;
+  return $dirs;
 }

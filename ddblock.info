@@ -1,6 +1,14 @@
 ; $Id$
 name = Dynamic display block
 description = Displays dynamic content in a block.
-core = 6.x
+core = 7.x
 
-dependencies[] = "jquery_update"
+files[] = ddblock-cycle-block-content.tpl.php
+files[] = ddblock-cycle-pager-content.tpl.php
+files[] = ddblock.admin.inc
+files[] = ddblock.install
+files[] = ddblock.module
+files[] = ddblock.class.php
+
+configure = admin/structure/ddblock
+
