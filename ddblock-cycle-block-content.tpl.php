@@ -70,7 +70,7 @@
       <?php foreach ($content['slide_image'] as $image_file): ?>
        <div class="slide"><?php print $image_file; ?></div>
       <?php endforeach; ?>
-     <div>
+     </div>
      <!-- prev/next pager on slide -->
      <?php if ($settings['pager2'] == 1): ?>
       <div class="pager-slide prev-container prev-container-<?php print $settings['pager_position'] ?>">

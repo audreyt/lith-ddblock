@@ -254,7 +254,7 @@ function ddblock_block_confirm_delete_form_submit($form, &$form_state) {
 /**
  * Delete a dynamic display block or dynamic display block instance from the database.
  */
-function ddblock_block_confirm_delete($delta) {
+/*function ddblock_block_confirm_delete($delta) {
   $result = db_delete('ddblock_block')
   ->condition('delta', (int) $delta)
   ->execute();
@@ -267,6 +267,25 @@ function ddblock_block_confirm_delete($delta) {
   else {
     return FALSE;
   }
+}
+*/
+function ddblock_block_confirm_delete($delta) {
+  _block_rehash();
+  $result = db_delete('ddblock_block')
+  ->condition('delta', (int) $delta)
+  ->execute();
+
+  $result = db_delete('block')
+  ->condition('module', 'ddblock')
+  ->condition('delta', $delta)
+  ->execute();
+
+  // variable_del includes a clear cache.
+  variable_del('ddblock_block_ddblock_' . $delta . '_settings');
+  variable_del('ddblock_block_ddblock_' . $delta . '_cycle_settings');
+  variable_del('ddblock_block_ddblock_' . $delta . '_cycle_mapping_settings');
+
+  return TRUE;
 }
 
 /**

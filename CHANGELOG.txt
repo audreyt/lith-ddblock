@@ -1,7 +1,12 @@
 /*
  * Change Log for ddblock module
  */
-
+2011-FEB-11
+#1049556 fix delete of blocks
+#1053996 fix warnings when no images
+#1055048 fix remove extra slide div not closed
+#1054488 fix remove extra commit button on config page
+ 
 2011-JAN-29 
 Fixed redirects after forms are submitted
 Rename function _dir_scan_directory to _ddblock_dir_scan_directory

@@ -1605,12 +1605,6 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       );
 
       $form_state['redirect'] = 'admin/structure/ddblock/list';
-
-      $form['submit'] = array(
-        '#type' => 'submit',
-        '#value' => t('Submit'),
-        '#submit' => array('ddblock_form_alter_submit'),
-      );
     }
   }
 }
@@ -2231,93 +2225,97 @@ function _ddblock_get_image_array($imagepath, $order, $max_image, $ignore_files,
 
   $file_names = array();
 
-  // Remove to file to ignore
-  if (!empty($ignore_files)) {
-    $ignore_strings = explode(',', $ignore_files);
+  if (sizeof($file_array) > 0) {
+    // Remove to file to ignore
+    if (!empty($ignore_files)) {
+      $ignore_strings = explode(',', $ignore_files);
 
-    $temp_file_array = array();
-    foreach ($file_array as $value) {
-      $ignore = FALSE;
+      $temp_file_array = array();
+      foreach ($file_array as $value) {
+        $ignore = FALSE;
 
-      foreach ($ignore_strings as $ignore_string ) {
-        if (stristr($value->filename, $ignore_string)) {
-          $ignore = TRUE;
-          break;
+        foreach ($ignore_strings as $ignore_string ) {
+          if (stristr($value->filename, $ignore_string)) {
+            $ignore = TRUE;
+            break;
+          }
+        }
+        if (!$ignore) {
+         $temp_file_array[] = $value;
         }
       }
-      if (!$ignore) {
-        $temp_file_array[] = $value;
+      $file_array = $temp_file_array;
+    }
+    if (sizeof($file_array) > 0) {
+      foreach ($file_array as $value) {
+        if ($image_style_slide <> 'none') {
+          $image_info = _ddblock_get_file_sizes($value->uri, $image_style_slide);
+          $image = array(
+            'title' => 'image',
+            'path' => $value->uri,
+            'alt' => 'image',
+            'style_name' => $image_style_slide,
+            'width' => $image_info['width'] . 'px',
+            'height' => $image_info['height'] . 'px',
+          );
+
+          $file_names['slide_image'][] = theme('image_style', $image);
+        }
+        else {
+          $variables = array(
+            'path' => $value->uri,
+            'alt' => 'image',
+            'title' => 'image',
+            'width' => '200px',
+            'height' => '200px',
+            'attributes' => array(),
+          );
+          $file_names['slide_image'][] = theme('image', $variables);
+        }
+        if ($image_style_pager_item <> 'none') {
+          $image_info = _ddblock_get_file_sizes($value->uri, $image_style_pager_item);
+          $image = array(
+            'title' => 'image',
+            'path' => $value->uri,
+            'alt' => 'image',
+            'style_name' => $image_style_pager_item,
+            'width' => $image_info['width'] . 'px',
+            'height' => $image_info['height'] . 'px',
+          );
+          $file_names['pager_image'][] = theme('image_style', $image);
+        }
+        else {
+          $variables = array(
+            'path' => $value->uri,
+            'alt' => 'image',
+            'title' => 'image',
+            'width' => '55px',
+            'height' => '55px',
+            'attributes' => array(),
+          );
+          $file_names['pager_image'][] = theme('image', $variables);
+        }
       }
-    }
-    $file_array = $temp_file_array;
-  }
-  foreach ($file_array as $value) {
-    if ($image_style_slide <> 'none') {
-      $image_info = _ddblock_get_file_sizes($value->uri, $image_style_slide);
-      $image = array(
-        'title' => 'image',
-        'path' => $value->uri,
-        'alt' => 'image',
-        'style_name' => $image_style_slide,
-        'width' => $image_info['width'] . 'px',
-        'height' => $image_info['height'] . 'px',
-      );
 
-      $file_names['slide_image'][] = theme('image_style', $image);
+      switch ($order) {
+        case 'random':
+          shuffle($file_names);
+          break;
+        case 'asc':
+          asort($file_names['slide_image']);
+          asort($file_names['pager_image']);
+          break;
+        case 'desc':
+          rsort($file_names['slide_image']);
+          rsort($file_names['pager_image']);
+          break;
+        case 'none':
+          break;
+      }
+      $file_names['slide_image'] = array_slice($file_names['slide_image'], 0, $max_image);
+      $file_names['pager_image'] = array_slice($file_names['pager_image'], 0, $max_image);
     }
-    else {
-      $variables = array(
-        'path' => $value->uri,
-        'alt' => 'image',
-        'title' => 'image',
-        'width' => '200px',
-        'height' => '200px',
-        'attributes' => array(),
-      );
-      $file_names['slide_image'][] = theme('image', $variables);
-    }
-    if ($image_style_pager_item <> 'none') {
-      $image_info = _ddblock_get_file_sizes($value->uri, $image_style_pager_item);
-      $image = array(
-        'title' => 'image',
-        'path' => $value->uri,
-        'alt' => 'image',
-        'style_name' => $image_style_pager_item,
-        'width' => $image_info['width'] . 'px',
-        'height' => $image_info['height'] . 'px',
-      );
-      $file_names['pager_image'][] = theme('image_style', $image);
-    }
-    else {
-      $variables = array(
-        'path' => $value->uri,
-        'alt' => 'image',
-        'title' => 'image',
-        'width' => '55px',
-        'height' => '55px',
-        'attributes' => array(),
-      );
-      $file_names['pager_image'][] = theme('image', $variables);
-    }
-  }
-
-  switch ($order) {
-    case 'random':
-      shuffle($file_names);
-      break;
-    case 'asc':
-      asort($file_names['slide_image']);
-      asort($file_names['pager_image']);
-      break;
-    case 'desc':
-      rsort($file_names['slide_image']);
-      rsort($file_names['pager_image']);
-      break;
-    case 'none':
-      break;
-  }
-  $file_names['slide_image'] = array_slice($file_names['slide_image'], 0, $max_image);
-  $file_names['pager_image'] = array_slice($file_names['pager_image'], 0, $max_image);
+  }  
   return $file_names;
 }
 
