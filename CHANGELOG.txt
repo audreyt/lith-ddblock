@@ -1,6 +1,12 @@
 /*
  * Change Log for ddblock module
  */
+2011-FEB-14
+#1058868 Adjust install.txt
+bug-fix  Add pagerPosition to javascript settings for horizontal/vertical scrollable pager
+bug-fix  Add pager_toggle to variables given to content template file to toggle the pager on/off
+bug-fix  add hyphen (-) to mask for finding size-xxx files
+
 2011-FEB-11
 #1049556 fix delete of blocks
 #1053996 fix warnings when no images

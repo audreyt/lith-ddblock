@@ -1813,6 +1813,7 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
     'next' => $next,
     'overflow' => $overflow,
     'pager' => $pager,
+    'pagerPosition' => $pager_position,
     'pagerPrevNextLoop' => $pager_prev_next_loop,
     'pagerScrollableLoop' => $pager_scrollable_loop,
     'nrOfPagerItems' => $nr_of_pager_items,
@@ -1849,6 +1850,7 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
       'nr_of_items' => $nr_of_items,
       'nr_of_pager_items' => $nr_of_pager_items,
       'output_type' => $output_type,
+      'pager_toggle' => $pager_toggle,
       'pager' => $pager,
       'pager_container' => $pager_container,
       'pager_event' => $pager_event,
@@ -1932,6 +1934,7 @@ function template_preprocess_ddblock_cycle_block_content(&$vars) {
   $slider_settings['nr_of_items'] = $vars['settings']['nr_of_items'];
   $slider_settings['nr_of_pager_items'] = $vars['settings']['nr_of_pager_items'];
   $slider_settings['output_type'] = $vars['settings']['output_type'];
+  $slider_settings['pager_toggle'] = $vars['settings']['pager_toggle'];
   $slider_settings['pager'] = $vars['settings']['pager'];
   $slider_settings['pager_height'] = $vars['settings']['pager_height'];
   $slider_settings['pager_width'] = $vars['settings']['pager_width'];
@@ -2759,8 +2762,7 @@ function _ddblock_get_template_size($theme) {
  */
 function _ddblock_dir_scan_directory($dir, $mapping = '') {
   $dirs = array();
-  $mask = '/[^0-9A-Za-z]/';
-
+  $mask = '/[^0-9A-Za-z\-]/';
   if (is_dir($dir) && $handle = opendir($dir)) {
     while ($file = readdir($handle)) {
       // no current and previous directory
