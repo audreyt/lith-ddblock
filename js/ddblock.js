@@ -1,4 +1,3 @@
-// $Id$
 (function ($) {
 /**
   * Set image settings

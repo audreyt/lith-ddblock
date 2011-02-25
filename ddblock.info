@@ -1,4 +1,3 @@
-; $Id$
 name = Dynamic display block
 description = Displays dynamic content in a block.
 core = 7.x

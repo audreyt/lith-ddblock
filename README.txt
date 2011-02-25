@@ -1,4 +1,3 @@
-// $Id$
 
 Note: This is dev verison of the module. Please test and review the module and post
 your issues on the project page http://drupal.org/project/ddblock to help improve
