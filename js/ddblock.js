@@ -12,7 +12,6 @@ Drupal.behaviors.ddblockImg = {
       // if no template and CCS is used set the image dimensions here
       if (ddblockSettings.setDimensions == 'none') {
         if ((ddblockSettings.imageHeight > 0) && (ddblockSettings.imageWidth > 0 )) {
- //       alert(ddblockSettings.imageHeight);
           $('#ddblock-'+ ddblockSettings.block +' .ddblock-container img:not(.ddblock-processed)', context)
           .css('height',ddblockSettings.imageHeight + 'px')
           .css('width',ddblockSettings.imageWidth + 'px')
@@ -32,7 +31,6 @@ Drupal.behaviors.ddblockImgContainer = {
     for (var base in settings.ddblockImageContainer) {
       // get variables
       var ddblockSettings = settings.ddblockImageContainer[base];
- //       alert('imageContainerHeight=' + ddblockSettings.imageContainerHeight);
       // if no template and CCS is used set the content dimensions here
       if (ddblockSettings.setDimensions == 'none') {
         if ((ddblockSettings.imageContainerHeight > 12) && (ddblockSettings.imageContainerWidth > 12 )) {
@@ -236,6 +234,11 @@ Drupal.behaviors.ddblockCycle = {
               return false;
             });
           }
+          else {
+            $("#ddblock-" + pager + "-" + block + " a.pager-link").click(function() {
+              location.href = this.href;
+            });
+          }
         }
 
         options.pager2SlideHide = ddblockSettings.pager2SlideHide;
@@ -269,6 +272,30 @@ Drupal.behaviors.ddblockCycle = {
           jQuery.extend(true, options, custom2);
         }
 
+        options.ddblocknr = block;
+        options.before = onBefore;
+        options.after = onAfter;
+        options.pagerContainer = ddblockSettings.pagerContainer;
+
+        // redefine Cycle's updateActivePagerLink function
+        $.fn.cycle.updateActivePagerLink = function(pager, currSlide) {
+          $(pager)
+          .find('a.pager-link')
+          .removeClass('activeSlide')
+          .filter('a.pager-link:eq('+currSlide+')')
+          .addClass('activeSlide');
+          $(pager)
+          .find('.custom-pager-item')
+          .removeClass('active-pager-item')
+          .filter('.custom-pager-item:eq('+currSlide+')')
+          .addClass('active-pager-item');
+          $(pager)
+          .find('.scrollable-pager-item')
+          .removeClass('active-pager-item')
+          .filter('.scrollable-pager-item:eq('+currSlide+')')
+          .addClass('active-pager-item');
+        };
+        
         //Basic block
         if (ddblockSettings.setDimensions == 'none') {
           //only one slide
@@ -312,34 +339,6 @@ Drupal.behaviors.ddblockCycle = {
             options.slideTextEffectAfter = ddblockSettings.slideTextEffectAfter;
             options.slideTextEffectAfterSpeed = ddblockSettings.slideTextEffectAfterSpeed;
             options.slideTextjQuery = ddblockSettings.slideTextjQuery;
-            options.ddblocknr = block;
-            options.before = onBefore;
-            options.after = onAfter;
-          }
-
-          options.pagerContainer = ddblockSettings.pagerContainer;
-
-          // redefine Cycle's updateActivePagerLink function
-          $.fn.cycle.updateActivePagerLink = function(pager, currSlide) {
-            if (pager.match("custom-pager") == "custom-pager") {
-              $(pager)
-              .find('a.pager-link')
-              .removeClass('activeSlide')
-              .filter('a.pager-link:eq('+currSlide+')')
-              .addClass('activeSlide');
-            }
-            else {
-              $(pager)
-              .find('a')
-              .removeClass('activeSlide')
-              .filter('a:eq('+currSlide+')')
-              .addClass('activeSlide');
-            }
-            $(pager)
-            .find('.custom-pager-item')
-            .removeClass('active-pager-item')
-            .filter('.custom-pager-item:eq('+currSlide+')')
-            .addClass('active-pager-item');
           }
 
           if (pager == 'scrollable-pager') {
@@ -352,7 +351,6 @@ Drupal.behaviors.ddblockCycle = {
             }
             // create one scrollable element and return the API by enabling the "api" property
             var myScrollable = $('#ddblock-scrollable-pager-' + block).scrollable({
-//            var myScrollable = $('.scrollable-pager').scrollable({
 
               // number of items vissible in scrollable pager
               size: ddblockSettings.nrOfPagerItems,
@@ -380,11 +378,9 @@ Drupal.behaviors.ddblockCycle = {
               options.myScrollable = myScrollable;
 
               //set total nr of pager items
-              options.nrOfPagerItems = ddblockSettings.nrOfPagerItems = 5;
+              options.nrOfPagerItems = ddblockSettings.nrOfPagerItems;
             }
           }
-
-
 
           //only one slide
           if (ddblockSettings.nrOfItems <= 1) {
