@@ -1725,8 +1725,8 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
           // Load the view
           if ($view = views_get_view($view_name)) {
             if ($view->access($display_id)) {
-            $view->preview($display_id);
-            $content = $view->result;
+              $view->preview($display_id);
+              $content = $view->result;
 
             // Remove empty mappings
               foreach ($mappings as $key => $value) {
@@ -1736,7 +1736,7 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
               }
 
             // create result array
-              foreach ($view->result as $row_num => $result) {
+              foreach ($content as $row_num => $result) {
                 foreach ($view->field as $id => $field) {
                   $field_output = $view->style_plugin->get_field($row_num, $id);
                   foreach ($mappings as $mapping_key => $mapping_value) {
@@ -1747,9 +1747,9 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
                   }
                 }
               }
-
-              $content = $result_rows;
-              if (!empty($content)) {
+              $content = array();
+              if (!empty($result_rows)) {
+                $content = $result_rows;
                 switch ($order) {
                   case 'random':
                     shuffle($content);
@@ -2268,11 +2268,12 @@ function _ddblock_get_image_array($imagepath, $order, $max_image, $ignore_files,
             'path' => $value->uri,
             'alt' => 'image',
             'title' => 'image',
-            'width' => '200px',
-            'height' => '200px',
+            'width' => '100%',
+            'height' => '100%',
             'attributes' => array(),
           );
-          $file_names['slide_image'][] = theme('image', $variables);
+          $file_names['slide_image'][] = '<img src="' . file_create_url($value->uri) . '" alt="image">';
+//          $file_names['slide_image'][] = theme('image', $variables);
         }
         if ($image_style_pager_item <> 'none') {
           $image_info = _ddblock_get_file_sizes($value->uri, $image_style_pager_item);

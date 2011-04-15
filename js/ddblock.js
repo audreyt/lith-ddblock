@@ -17,6 +17,11 @@ Drupal.behaviors.ddblockImg = {
           .css('width',ddblockSettings.imageWidth + 'px')
           .addClass('ddblock-processed');
         }
+        else{
+          $('#ddblock-'+ ddblockSettings.block +' .slider:not(.ddblock-slider-visble-processed)', context)
+          .addClass('overflow-visible')
+          .addClass('ddblock-slider-visible-processed');        
+        }
       }
     }
   }

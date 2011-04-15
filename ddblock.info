@@ -1,6 +1,7 @@
 name = Dynamic display block
 description = Displays dynamic content in a block.
 core = 7.x
+dependencies[] = image
 
 files[] = ddblock-cycle-block-content.tpl.php
 files[] = ddblock-cycle-pager-content.tpl.php

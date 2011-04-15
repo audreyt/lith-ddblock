@@ -4,6 +4,9 @@
   position: relative;
 }
 
+div.slider.overflow-visible{
+  overflow:visible!important;
+}
 /* default dynamic display block number pager */
 .ddblock-number-pager a.activeSlide  {
   background: #88f;
