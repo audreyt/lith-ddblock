@@ -2,12 +2,7 @@
 REQUIREMENTS
 ------------
 * Javascript-enabled web browser
-
-Optional
-
-* jQuery easing plug-in (optional) <http://gsgd.co.uk/sandbox/jquery/easing/>
-  This jQuery plug-in is not included in the Drupal distribution because it is not licensed
-  under GPL which is required by Drupal.
+  libraries module
 
 For advanced options
 
@@ -35,8 +30,13 @@ INSTALLATION
 
 DYNAMIC DISPLAY BLOCK INSTALLATION
 ----------------------------------
-* Download, extract and copy the ddblock folder to your sites/all/modules
-   directory.
+* Download the jquery cycle plugin from http://malsup.com/jquery/cycle/download.html 
+  (use jquery.cycle.all.min.js (packed version) or jquery.cycle.all.js, tested till version 2.99)
+
+* Install the jquery cycle plugin in /sites/all/libraries/jquery.cycle/
+
+
+* Download, extract and copy the ddblock folder to your sites/all/modules directory.
 
 * Enable the module at Administer >> Site building >> Modules.
 
@@ -44,11 +44,6 @@ DYNAMIC DISPLAY BLOCK INSTALLATION
 
 For more information about configuration, see README.txt of the ddblock.
 
-OPTIONAL JQUERY EASING PLUG-IN INSTALLATION
-----------------------------------
-* Download version 1.3 at http://gsgd.co.uk/sandbox/jquery/easing/.
-
-* Copy jquery.easing.1.3.js to sites/all/modules/ddblock.
 
 DDBLOCK THEMES INSTALLATION
 ---------------------------
@@ -82,5 +77,3 @@ Configure the other slideshow settings
 Save the block
 
 Place the block in a region of your overall theme.
-
-More documentation will follow.

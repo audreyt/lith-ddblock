@@ -1,6 +1,15 @@
 /*
  * Change Log for ddblock module
  */
+2011-JUL-18
+Add easing support for slide and slidetext using jquery UI
+#1190082 improve help text for choosing content types
+add nr_of_items functionality for custom pager
+adjust nr_of_items help text
+improve help text for before and after effects
+Cycle plugin now via libraries
+
+
 2011-FEB-14
 #1058868 Adjust install.txt
 bug-fix  Add pagerPosition to javascript settings for horizontal/vertical scrollable pager

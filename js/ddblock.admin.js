@@ -336,7 +336,7 @@ Drupal.behaviors.ddblockShowHideCustomTemplateOptions = {
           pager = 'custom-pager';
           $('#edit-pager-container').val('.custom-pager-item');
           $("#ddblock-pager-prev-next-loop-wrapper").hide();
-          $("#ddblock-nr-of-pager-items-wrapper").hide();
+          $("#ddblock-nr-of-pager-items-wrapper").show();
           $("#ddblock-pager-scrollable-loop-wrapper").hide();
         break;
         case "60" :

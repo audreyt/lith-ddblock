@@ -12,7 +12,7 @@
 function ddblock_help($path, $arg) {
   switch ($path) {
     case "admin/help#ddblock":
-      $output = '<p>' . t('Display content dynamically in a block using the jQuery Cycle plugin and the jQuery Easing plugin') . '</p>';
+      $output = '<p>' . t('Display content dynamically in a block using the jQuery Cycle plugin and the jQuery UI plugin for easing') . '</p>';
       $output .= '<p>' . t('There are three methods to provide content for a dynamic display block. An input folder with images, a node from a content type or by making an instance of any block to use the block content of the original block as content for the dynamic display block') . '</p>';
       return $output;
   }
@@ -22,21 +22,23 @@ function ddblock_help($path, $arg) {
  * add javascript and css files.
  */
 function ddblock_init_js_css() {
+  // add jquery.ui
+  drupal_add_library('system', 'effects');
   // get module path to dynamic display block module
   $ddblock_path = drupal_get_path('module', 'ddblock');
 
   //add jcycle plugin
-  drupal_add_js($ddblock_path . '/js/jquery.cycle.all.min.js');
-
-  //add easing plugin
-  $file_path = $ddblock_path . '/js/jquery.easing.1.3.js';
-  $checked_file_path = file_exists($file_path);
-
-  if ($checked_file_path) {
-    drupal_add_js($ddblock_path . '/js/jquery.easing.1.3.js');
-  }
-  //drupal_add_js($ddblock_path . '/js/jquery.easing.1.1.1.js');
-
+  // Don't load javascript unless libraries module is present.
+  if (module_exists('libraries')) {
+    // Load jQuery Cycle
+    $cycle_path = libraries_get_path('jquery.cycle');
+    if (!empty($cycle_path) && file_exists($cycle_path . '/jquery.cycle.all.min.js')) {
+      drupal_add_js($cycle_path . '/jquery.cycle.all.min.js');
+    }
+    elseif (!empty($cycle_path) && file_exists($cycle_path . '/jquery.cycle.all.js')) {
+      drupal_add_js($cycle_path . '/jquery.cycle.all.js');
+    }
+  }  
   // add json pack to parse json
   drupal_add_js($ddblock_path . '/js/json2.pack.js');
 
@@ -278,6 +280,22 @@ function ddblock_block_configure_form($delta) {
   // Need this for AJAX.
   $form['#cache'] = TRUE;
 
+  // show warning that cycle plugin is not installed.
+  $cycle_path = libraries_get_path('jquery.cycle');
+  if (empty($cycle_path) || !(file_exists($cycle_path . '/jquery.cycle.all.min.js') || file_exists($cycle_path . '/jquery.cycle.all.js'))) {
+    $form['no_cycle_js'] = array(
+      '#type' => 'item',
+      '#title' => 'Cycle plugin',
+      '#markup' => '<div style="color: red">' . t('You need to install the jQuery cycle plugin.<br /> 
+      Create a directory in sites/all/libraries called jquery.cycle, and then copy jquery.cycle.all.js or jquery.cycle.all.min.js into it.<br /> 
+      Latest version tested: 2.99<br />
+      You can find the plugin at !url.', array('!url' => l('http://malsup.com/jquery/cycle/download.html', 'http://malsup.com/jquery/cycle/download.html', array('attributes' => array('target' => '_blank'))))) . '</div>',
+      '#prefix' => '<div id="ddblock-no-cycle-js">',
+      '#suffix' => '</div>',
+      '#weight' => -11,
+    );
+  }
+
   // content settings: what to use as content for the dynamic display block.
   $form['content'] = array(
     '#type' => 'fieldset',
@@ -367,7 +385,7 @@ function ddblock_block_configure_form($delta) {
     '#title' => t('Content Type'),
     '#default_value' => $content_type,
     '#options' => $content_types,
-    '#description' => t("The nodes of the content type to be used as content of dynamic display block."),
+    '#description' => t("The nodes of the content type to be used as content of dynamic display block.<br />Only content types enabled in the settings tab of the ddblock module will show up here."),
     '#attributes' => array('class' => array('content-type-select')),
     '#ahah' => array(
       'path' => 'ddblock/js/select_nodes',
@@ -905,6 +923,21 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       // hide fields when using advanced settings
       $extra = (!empty($advanced)) ? ' style="display:none"' : '';
 
+      // show warning that cycle plugin is not installed.
+      $cycle_path = libraries_get_path('jquery.cycle');
+      if (empty($cycle_path) || !(file_exists($cycle_path . '/jquery.cycle.all.min.js') || file_exists($cycle_path . '/jquery.cycle.all.js'))) {
+        $form['no_cycle_js'] = array(
+          '#type' => 'item',
+          '#title' => 'Cycle plugin',
+          '#markup' => '<div style="color: red">' . t('You need to install the jQuery cycle plugin.<br /> 
+           Create a directory in sites/all/libraries called jquery.cycle, and then copy jquery.cycle.all.js or jquery.cycle.all.min.js into it.<br /> 
+           Latest version tested: 2.99<br />
+           You can find the plugin at !url.', array('!url' => l('http://malsup.com/jquery/cycle/download.html', 'http://malsup.com/jquery/cycle/download.html', array('attributes' => array('target' => '_blank'))))) . '</div>',
+           '#prefix' => '<div id="ddblock-no-cycle-js">',
+           '#suffix' => '</div>',
+           '#weight' => -16,
+        );
+      }
       $form['module'] = array(
         '#type' => 'hidden',
         '#value' => $module,
@@ -1057,7 +1090,6 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         $form['block_settings']['mapping_wrapper']['mappings'][$delta] = ddblock_mapping_display_form($delta, $target, $source, $source_fields);
       }
 
-
       if ($widget == 'default') {
         $collapsed = TRUE;
       }
@@ -1157,6 +1189,25 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#multiple' => FALSE,
         '#required' => TRUE,
         '#description' => t("The transition effect between content.<br />(all for random effect per slide, none for no effect)<br />Multiple effects can be set in the Custom jQuery Cycle Plugin Settings."),
+      );
+      $options = _ddblock_get_easing_effects();
+      $form['block_settings']['settings']['easing_out'] = array(
+        '#type' => 'select',
+        '#title' => t('Transition Effect'),
+        '#default_value' => $easing_out,
+        '#options' => $options,
+        '#multiple' => FALSE,
+        '#required' => TRUE,
+        '#description' => t("The easing effect of the previous slide.<br />For easing effect examples, see: <a href=\"http://jqueryui.com/demos/effect/easing.html\" target=\"_blank\">easing demos</a>"),
+      );
+      $form['block_settings']['settings']['easing_in'] = array(
+        '#type' => 'select',
+        '#title' => t('Transition Effect'),
+        '#default_value' => $easing_in,
+        '#options' => $options,
+        '#multiple' => FALSE,
+        '#required' => TRUE,
+        '#description' => t("The easing effect of the next slide.<br />For easing effect examples, see: <a href=\"http://jqueryui.com/demos/effect/easing.html\" target=\"_blank\">easing demos</a>"),
       );
 
       $options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000));
@@ -1430,7 +1481,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
       // if the checkbox: Use advanced settings is not checked, hide the advanced settings
       $form['block_settings']['settings']['pager_settings']['pager_scrollable_loop'] = array(
         '#type' => 'checkbox',
-        '#title' => t('Scrollable Pager show'),
+        '#title' => t('Scrollable Pager show navigation'),
         '#default_value' => $pager_scrollable_loop,
         '#prefix' => '<div id="ddblock-pager-scrollable-loop-wrapper"' . $extra . '>',
         '#suffix' => '</div>',
@@ -1446,7 +1497,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#suffix' => '</div>',
         '#required' => FALSE,
         '#size' => 30,
-        '#description' => t("Number of pager items visible at one time in the scrollable pager.<br />This setting will rule the functionality of the pager."),
+        '#description' => t("For Custom pager: Number of items in a row.<br />For Scrollable pager: Set this to the number of pager items visible at one time in the scrollable pager.<br />This setting will rule the functionality of the scrollable pager."),
       );
 
       $form['block_settings']['settings']['pager_settings']['pager_container'] = array(
@@ -1526,7 +1577,7 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#title' => t('Slide text jquery settings'),
         '#weight' => 7,
       );
-
+      $easing_effect_options = _ddblock_get_easing_effects();
       $before_effect_options = array(
         'hide' => t('Basics - Hide'),
         'fadeOut' => t('Fading - Fade Out'),
@@ -1540,7 +1591,8 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#options' => $before_effect_options,
         '#multiple' => FALSE,
         '#required' => FALSE,
-        '#description' => t("Before effect of the slide text"),
+        '#description' => t("The before event is before a slide is shown, here the slidetext of the
+previous slide will be hidden."),
       );
 
       $speed_options = drupal_map_assoc(array(0, 250, 500, 1000, 2000, 3000, 4000, 5000));
@@ -1552,6 +1604,16 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#options' => $speed_options,
         '#required' => FALSE,
         '#description' => t("Speed of the before effect (1000 = 1 second, 0 = direct)."),
+      );
+      
+      $form['block_settings']['settings']['slide_text_settings']['slide_jquery']['slide_text_before_easing'] = array(
+        '#type' => 'select',
+        '#title' => t('Before easing'),
+        '#default_value' => $slide_text_before_easing,
+        '#options' => $easing_effect_options,
+        '#multiple' => FALSE,
+        '#required' => FALSE,
+        '#description' => t("Before easing effect of the slide text.<br />For easing effect examples, see: <a href=\"http://jqueryui.com/demos/effect/easing.html\" target=\"_blank\">easing demos</a>"),
       );
 
       $after_effect_options = array(
@@ -1567,7 +1629,8 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#options' => $after_effect_options,
         '#multiple' => FALSE,
         '#required' => FALSE,
-        '#description' => t("After effect of the slide text"),
+        '#description' => t("The after event is after a slide is shown, here the slidetext of the
+current slide will be shown."),
       );
 
       $form['block_settings']['settings']['slide_text_settings']['slide_jquery']['slide_text_after_speed'] = array(
@@ -1576,7 +1639,17 @@ function ddblock_form_alter(&$form, &$form_state, $form_id) {
         '#default_value' => $slide_text_after_speed,
         '#options' => $speed_options,
         '#required' => FALSE,
-        '#description' => t("Speed of the before effect (1000 = 1 second, 0 = direct)."),
+        '#description' => t("Speed of the after effect (1000 = 1 second, 0 = direct)."),
+      );
+
+      $form['block_settings']['settings']['slide_text_settings']['slide_jquery']['slide_text_after_easing'] = array(
+        '#type' => 'select',
+        '#title' => t('After easing'),
+        '#default_value' => $slide_text_after_easing,
+        '#options' => $easing_effect_options,
+        '#multiple' => FALSE,
+        '#required' => FALSE,
+        '#description' => t("After easing effect of the slide text.<br />For easing effect examples, see: <a href=\"http://jqueryui.com/demos/effect/easing.html\" target=\"_blank\">easing demos</a>"),
       );
 
       if ($custom_jquery) {
@@ -1806,6 +1879,8 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
     'contentContainer' => $container,
     'custom' => $custom_jquery,
     'fx' => $fx,
+    'easeOut' => $easing_out,
+    'easeIn' => $easing_in,
     'speed' => $speed,
     'timeOut' => $timeout,
     'pause' => $pause,
@@ -1830,8 +1905,10 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
     'slideTextContainer' => $slide_text_container,
     'slideTextEffectBefore' => $slide_text_before_effect,
     'slideTextEffectBeforeSpeed' => $slide_text_before_speed,
+    'slideTextEffectBeforeEasing' => $slide_text_before_easing,
     'slideTextEffectAfter' => $slide_text_after_effect,
     'slideTextEffectAfterSpeed' => $slide_text_after_speed,
+    'slideTextEffectAfterEasing' => $slide_text_after_easing,
     'height' => $height,
     'width' => $width,
   );
@@ -2166,6 +2243,9 @@ function _ddblock_get_effects() {
 function _ddblock_get_easing_effects() {
   // easing effects.
   $_easing_fx = array(
+    'none' => '<none>',
+    'linear' => 'linear',
+    'swing' => 'swing',
     'easeInQuad' => 'easeInQuad',
     'easeOutQuad' => 'easeOutQuad',
     'easeInOutQuad' => 'easeInOutQuad',

@@ -80,25 +80,29 @@ Drupal.behaviors.ddblockCycle = {
           if (opts.slideTextEffectBeforeSpeed == 0) {
             opts.slideTextEffectBeforeSpeed = 1;
           };
+          if (opts.slideTextEffectBeforeEasing == 'none') {
+            opts.slideTextEffectBeforeEasing = '';
+          };
           switch (opts.slideTextEffectBefore) {
             case "fadeOut":
-              $("#ddblock-" + opts.ddblocknr + ' ' +
-                opts.slideTextContainer + '-' + opts.slideTextPosition)
-                .stop(true,true)
-                .fadeOut(opts.slideTextEffectBeforeSpeed);
+              $("#ddblock-" + opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition)
+              .stop(true,true)
+              .fadeOut(opts.slideTextEffectBeforeSpeed, opts.slideTextEffectBeforeEasing);
+              $("#ddblock-"+ opts.ddblocknr + ' div.slide-' + opts.nextSlide + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).css({"display":"none"});
             break;
             case "slideUp":
-              $("#ddblock-"+ opts.ddblocknr + ' ' +
-                opts.slideTextContainer + '-' + opts.slideTextPosition)
-                .stop(true,true)
-                .slideUp(opts.slideTextEffectBeforeSpeed);
+              $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition)
+              .stop(true,true)
+              .slideUp(opts.slideTextEffectBeforeSpeed, opts.slideTextEffectBeforeEasing);
+//              .effect('easeOutBounce','',opts.slideTextEffectAfterSpeed);
+             $("#ddblock-"+ opts.ddblocknr + ' div.slide-' + opts.nextSlide + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).css({"display":"none"});
             break;
             default:
-              $("#ddblock-"+ opts.ddblocknr + ' ' +
-                opts.slideTextContainer + '-' + opts.slideTextPosition)
-                .stop(true,true)
-                .hide(opts.slideTextEffectBeforeSpeed);
-          }
+              $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition)
+              .stop(true,true)
+              .hide(opts.slideTextEffectBeforeSpeed, opts.slideTextEffectBeforeEasing);
+              $("#ddblock-"+ opts.ddblocknr + ' div.slide-' + opts.nextSlide + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).css({"display":"none"});
+           }
         }
       }
     }
@@ -113,21 +117,24 @@ Drupal.behaviors.ddblockCycle = {
         if (opts.slideTextEffectAfterSpeed == 0) {
           opts.slideTextEffectAfterSpeed = 1;
         };
+        if (opts.slideTextEffectAfterEasing == 'none') {
+          opts.slideTextEffectAfterEasing = '';
+        };
         switch (opts.slideTextEffectAfter) {
           case "fadeIn":
-            $("#ddblock-"+ opts.ddblocknr + ' ' +
-              opts.slideTextContainer + '-'  + opts.slideTextPosition)
-              .fadeIn(opts.slideTextEffectAfterSpeed);
+            $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-'  + opts.slideTextPosition)
+            .fadeIn(opts.slideTextEffectAfterSpeed, opts.slideTextEffectAfterEasing);
+            $("#ddblock-"+ opts.ddblocknr + ' div.slide-' + opts.nextSlide + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).css({"display":"none"});
           break;
           case 'slideDown':
-            $("#ddblock-"+ opts.ddblocknr + ' ' +
-              opts.slideTextContainer + '-' + opts.slideTextPosition)
-              .slideDown(opts.slideTextEffectAfterSpeed);
+            $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition)
+            .slideDown(opts.slideTextEffectAfterSpeed, opts.slideTextEffectAfterEasing);
+            $("#ddblock-"+ opts.ddblocknr + ' div.slide-' + opts.nextSlide + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).css({"display":"none"});
           break;
           default:
-            $("#ddblock-"+ opts.ddblocknr + ' ' +
-              opts.slideTextContainer + '-' + opts.slideTextPosition)
-              .show(opts.slideTextEffectAfterSpeed);
+            $("#ddblock-"+ opts.ddblocknr + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition)
+            .show(opts.slideTextEffectAfterSpeed, opts.slideTextEffectAfterEasing);
+            $("#ddblock-"+ opts.ddblocknr + ' div.slide-' + opts.nextSlide + ' ' + opts.slideTextContainer + '-' + opts.slideTextPosition).css({"display":"none"});
         }
       }
       //when scrollable pager is used set active pager-item to current slide
@@ -173,6 +180,13 @@ Drupal.behaviors.ddblockCycle = {
 
         // set transition option
         options.fx = ddblockSettings.fx;
+//        options.easeOut = ddblockSettings.easeOut;
+        if (ddblockSettings.easeOut != 'none') {
+          options.easeOut = ddblockSettings.easeOut;
+        }  
+        if (ddblockSettings.easeIn != 'none') {
+          options.easeIn = ddblockSettings.easeIn;
+        }  
 
         //set delay option for the blocks at different values so they less interfere with eachother
         options.delay = i * -1000;
@@ -252,6 +266,7 @@ Drupal.behaviors.ddblockCycle = {
         //options.slideExpr = contentContainer;
 
         //set speed of the transition (any valid fx speed value)
+        options.speed = ddblockSettings.speed;
         if (options.speed == 0) {
           options.speed = 1;
         };
@@ -341,8 +356,10 @@ Drupal.behaviors.ddblockCycle = {
             options.slideTextPosition = ddblockSettings.slideTextPosition;
             options.slideTextEffectBefore = ddblockSettings.slideTextEffectBefore;
             options.slideTextEffectBeforeSpeed = ddblockSettings.slideTextEffectBeforeSpeed;
-            options.slideTextEffectAfter = ddblockSettings.slideTextEffectAfter;
+            options.slideTextEffectBeforeEasing = ddblockSettings.slideTextEffectBeforeEasing;
+            options.slideTextEffectAfter = ddblockSettings.slideTextEffectAfterEasing;
             options.slideTextEffectAfterSpeed = ddblockSettings.slideTextEffectAfterSpeed;
+            options.slideTextEffectAfterEasing = ddblockSettings.slideTextEffectAfterEasing;
             options.slideTextjQuery = ddblockSettings.slideTextjQuery;
           }
 
