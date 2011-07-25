@@ -275,9 +275,7 @@ Drupal.behaviors.ddblockCycle = {
         options.timeout = ddblockSettings.timeOut;
 
         //set pause, true to enable "pause on hover"
-        if (ddblockSettings.pause) {
-           options.pause = ddblockSettings.pause;
-        }
+        options.pause = (ddblockSettings.pause == 1) ? 1 : 0;
 
         //set custom options, custom need to start with the character {,
         //to prevent errors from a wywsiwyg editor which adds e.g. <br /> to the custom field.

@@ -1,6 +1,10 @@
 /*
  * Change Log for ddblock module
  */
+
+2011-JUL-23 
+#1226554 fix pause on hover always used in basic options
+
 2011-JUL-18
 Add easing support for slide and slidetext using jquery UI
 #1190082 improve help text for choosing content types
