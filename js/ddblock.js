@@ -267,6 +267,8 @@ Drupal.behaviors.ddblockCycle = {
       }
     }
 
+    $.fn.cycle = $.fn.cycle || { defaults: {} };
+
     i=0;
     for (var base in settings.ddblockContent) {
       // new options var for every block
@@ -448,16 +450,16 @@ Drupal.behaviors.ddblockCycle = {
             .css('width',ddblockSettings.width + 'px');
 
 
-	    var doCycle = function() {
-		if (parseInt(ddblockSettings.useCrossSlide)
+            var doCycle = function() {
+                if (parseInt(ddblockSettings.useCrossSlide)
     && !($.browser.msie && $.browser.version <= 6)
-		) {
-		    $container.randomCrossSlide();
-		}
-		else {
-		    $container.cycle(options);
-		}
-	    };
+                ) {
+                    $container.randomCrossSlide();
+                }
+                else {
+                    $container.cycle(options);
+                }
+            };
 
             $container
             .css('overflow', ddblockSettings.overflow)
@@ -467,31 +469,32 @@ Drupal.behaviors.ddblockCycle = {
 
 // ddblockSettings.coverImageURL = 'http://www.google.com.tw/intl/en_com/images/srpr/logo1w.png';
             if (/\S/.test(ddblockSettings.coverImageURL)) {
-		var $background = $('<div />', {
-		    src: ddblockSettings.coverImageURL,
-		    css: {
-			width: '100%',
-			height: '100%',
-			position: 'absolute',
-			background: 'white',
-			zIndex: '88888'
-		    }
-		}).prependTo($container.parent());
-		var $cover = $('<img />', {
-		    src: ddblockSettings.coverImageURL,
-		    css: {
-			width: '100%',
-			height: '100%',
-			position: 'absolute',
-			zIndex: '99999'
-		    }
-		}).prependTo($container.parent()).load(function(){
-			$cover.fadeOut(8 * 1000, function() { doCycle(); setTimeout(function() { $background.fadeOut() }, 200); });
-		});
-	    }
-	    else {
-		doCycle();
-	    }
+                $('#ddblock-' + block + ' li').hide();
+                var $background = $('<div />', {
+                    src: ddblockSettings.coverImageURL,
+                    css: {
+                        width: '100%',
+                        height: '100%',
+                        position: 'absolute',
+                        background: 'white',
+                        zIndex: '88888'
+                    }
+                }).prependTo($container.parent());
+                var $cover = $('<img />', {
+                    src: ddblockSettings.coverImageURL,
+                    css: {
+                        width: '100%',
+                        height: '100%',
+                        position: 'absolute',
+                        zIndex: '99999'
+                    }
+                }).prependTo($container.parent()).load(function(){
+                        $cover.fadeOut(8 * 1000, function() { doCycle(); setTimeout(function() { $background.fadeOut() }, 200); });
+                });
+            }
+            else {
+                doCycle();
+            }
           }
         }
         // advanced block
