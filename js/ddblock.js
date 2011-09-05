@@ -1,4 +1,110 @@
 (function ($) {
+
+$.fn.randomCrossSlide = function() {
+
+//if ($.browser.msie) {
+//$(this).html('<img src="/misc/books.jpg" width="776" height="200" />');
+//return;
+//}
+    var Fades = [
+
+    {
+        from: '0% 100% 1.2x',
+        to:   '50% 50% 1.8x'
+    }, {
+        from: '100% 0% 1.2x',
+        to:   '50% 50% 1.8x'
+    }, {
+        from: '0% 0% 1.2x',
+        to:   '50% 50% 1.8x'
+    }, {
+        from: '100% 100% 1.2x',
+        to:   '50% 50% 1.8x'
+    },
+    {
+        from: '0% 100% 1x',
+        to:   '30% 70% 1.5x'
+    }, {
+        from: '100% 0% 1x',
+        to:   '70% 30% 1.5x'
+    }, {
+        from: '0% 0% 1x',
+        to:   '30% 30% 1.5x'
+    }, {
+        from: '100% 100% 1x',
+        to:   '70% 70% 1.5x'
+    }
+
+/*
+    {
+        from: '100% 80% 1x',
+        to:   '100% 0% 1.7x'
+    }, {
+        from: 'top left',
+        to:   'bottom center 2.5x'
+    }, {
+        from: '100% 50%',
+        to:   '30% 50% 2.55x'
+    }, {
+        from: 'top right',
+        to:   'bottom right 1.5x'
+    }, {
+        from: '80% 50%',
+        to:   '30% 50% 1.5x'
+    }, {
+        from: 'top left',
+        to:   'bottom right 1.3x'
+    }, {
+        from: '50% 30%',
+        to:   '30% 50% 2.2x'
+    }, {
+        from: 'top left',
+        to:   'bottom right 2x'
+    }, {
+        from: 'top left',
+        to:   'bottom right 1.8x'
+    }, {
+        from: '50% 20%',
+        to:   '30% 50% 3x'
+    }, {
+        from: 'top left',
+        to:   'bottom left 1.5x'
+    }
+*/
+    ];
+     
+
+    var Images = [];
+    $(this).find('img[src]').each(function(){
+        Images.push( $(this).attr('src') );
+    });
+
+    var opts = [];
+    var shuffleFades = function() {
+        var shuffled = Fades.slice();
+        shuffled.sort(function(){return Math.random()-0.5});
+        return shuffled;
+    }
+    var currentFades = $.shuffle(Fades.slice());
+    //console.log(currentFades);
+    for (var i = 0; i < 10; i++) {
+        opts = opts.concat( $.map(
+            Images, function(img) {
+                var fade = currentFades.pop();
+                if (currentFades.length == 0) {
+                    currentFades = $.shuffle(Fades.slice());
+                }
+                return $.extend({}, { src: img, time: 10 }, fade);
+            }
+        ) );
+    }
+
+    $(this).crossSlide({
+        fade: 1,
+        variant: true
+    }, opts);
+};
+
 /**
   * Set image settings
   * only used if no template is choosen for the dynamic display block
@@ -336,14 +442,56 @@ Drupal.behaviors.ddblockCycle = {
           //more than one slide
           else {
             var $container = $('#ddblock-' + block + ' ' + contentContainer).parent();
+
             $container
-            .cycle(options)
-            .css('height',ddblockSettings.Height + 'px')
-            .css('width',ddblockSettings.Width + 'px')
+            .css('height',ddblockSettings.height + 'px')
+            .css('width',ddblockSettings.width + 'px');
+
+
+	    var doCycle = function() {
+		if (parseInt(ddblockSettings.useCrossSlide)
+    && !($.browser.msie && $.browser.version <= 6)
+		) {
+		    $container.randomCrossSlide();
+		}
+		else {
+		    $container.cycle(options);
+		}
+	    };
+
+            $container
             .css('overflow', ddblockSettings.overflow)
             .css('visibility', 'visible')
             .addClass('ddblock-processed');
             $('#ddblock-' + block).css('visibility', 'visible');
+
+// ddblockSettings.coverImageURL = 'http://www.google.com.tw/intl/en_com/images/srpr/logo1w.png';
+            if (/\S/.test(ddblockSettings.coverImageURL)) {
+		var $background = $('<div />', {
+		    src: ddblockSettings.coverImageURL,
+		    css: {
+			width: '100%',
+			height: '100%',
+			position: 'absolute',
+			background: 'white',
+			zIndex: '88888'
+		    }
+		}).prependTo($container.parent());
+		var $cover = $('<img />', {
+		    src: ddblockSettings.coverImageURL,
+		    css: {
+			width: '100%',
+			height: '100%',
+			position: 'absolute',
+			zIndex: '99999'
+		    }
+		}).prependTo($container.parent()).load(function(){
+			$cover.fadeOut(8 * 1000, function() { doCycle(); setTimeout(function() { $background.fadeOut() }, 200); });
+		});
+	    }
+	    else {
+		doCycle();
+	    }
           }
         }
         // advanced block

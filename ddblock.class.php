@@ -117,6 +117,9 @@ class ddblockCycleConfigurationSettings {
     'template_size'            => array('format' => '%s', 'value' => 'default'),
     'timeout'                  => array('format' => '%d', 'value' => 5000),
     'width'                    => array('format' => '%d', 'value' => 195),
+    // isis modified
+    'use_cross_slide'          => array('format' => '%d', 'value' => 0),
+    'cover_image_url'          => array('format' => '%s', 'value' => ''),
   );
 
   public function __construct (Array $settings) {

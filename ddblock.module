@@ -27,6 +27,10 @@ function ddblock_init_js_css() {
   // get module path to dynamic display block module
   $ddblock_path = drupal_get_path('module', 'ddblock');
 
+  //isis modified
+  drupal_add_js($ddblock_path . '/js/jquery.cross-slide.min.js');
+  drupal_add_js($ddblock_path . '/js/jquery.shuffle.js');
+
   //add jcycle plugin
   // Don't load javascript unless libraries module is present.
   if (module_exists('libraries')) {
@@ -536,6 +540,22 @@ function ddblock_block_configure_form($delta) {
     '#collapsible' => TRUE,
     '#title' => t('Settings'),
     '#weight' => 11,
+  );
+
+  $form['block_settings']['settings']['use_cross_slide'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use Cross Slide Effect'),
+    '#default_value' => $use_cross_slide,
+    '#required' => FALSE,
+    '#description' => t("The cross slide effect between content.<br />(all for random effect per slide, none for no effect)<br />Multiple effects can be set in the Custom jQuery Cross Slide Plugin Settings."),
+  );
+
+  $form['block_settings']['settings']['cover_image_url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Cover Image URL'),
+    '#default_value' => $cover_image_url,
+    '#required' => FALSE,
+    '#description' => t("URL to the first image to show, then fade away"),
   );
 
   // transition effect settings
@@ -1911,6 +1931,9 @@ function ddblock_content($origin, $delta, $content = NULL, $teaser = NULL) {
     'slideTextEffectAfterEasing' => $slide_text_after_easing,
     'height' => $height,
     'width' => $width,
+    // isis modified
+    'useCrossSlide' => $use_cross_slide,
+    'coverImageURL' => $cover_image_url,
   );
 
   ddblock_init_js_css();
