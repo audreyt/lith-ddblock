@@ -13,3 +13,7 @@ files[] = ddblock.class.php
 
 configure = admin/structure/ddblock
 
+version = "7.x-9.9"
+core = "7.x"
+project = "ddblock"
+datestamp = "2311557215"
